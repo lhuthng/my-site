@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { hash } from 'bcrypt';
+import { hash, compare } from 'bcrypt';
 import { AUTH_METHODS } from '../configs/db.js';
 
 const saltRounds = 10;
@@ -51,9 +51,29 @@ userSchema.pre('save', async function(next) {
     }
 });
 
-userSchema.statics.findByEmail = async function (email) {
-    return this.findOne({ email });
+userSchema.methods.comparePassword = async function (password) {
+    return await compare(password, this.password);
 };
+
+userSchema.static.findByUserId = async function(userId) {
+    return await this.findOne({ _id: userId });
+}
+
+userSchema.statics.findByEmail = async function(email) {
+    return await this.findOne({ email });
+};
+
+userSchema.statics.findByUsername = async function(username) {
+    return await this.findOne({ username });
+}
+
+userSchema.statics.findByAuthId = async function(authId) {
+    return await this.findOne({ authId });
+}
+
+userSchema.statics.deleteByUserId = async function(userId) {
+    return await this.deleteMany({ _id: userId });
+}
 
 const User = model('User', userSchema);
 export default User;

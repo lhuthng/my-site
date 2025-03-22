@@ -1,9 +1,9 @@
 import express from 'express';
-import { createUser } from '../controllers/userController.js';
-import { validateUser } from '../middleware/validation.js';
+import { validateSession } from '../middleware/validation.js';
+import { deleteUser } from '../controllers/userController.js';
 
 const router = express.Router();
 
-router.post('/', validateUser, createUser);
+router.delete('/me', validateSession, deleteUser);
 
 export default router;
