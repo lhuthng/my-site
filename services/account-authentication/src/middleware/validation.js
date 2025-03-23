@@ -2,6 +2,7 @@ import { body, validationResult } from 'express-validator';
 import { AUTH_METHODS } from '../configs/db.js';
 import jwt from 'jsonwebtoken';
 import Session from '../models/sessionModel.js';
+import User from '../models/userModel.js';
 
 const { JWT_SECRET } = process.env;
 
@@ -64,9 +65,7 @@ export const validateLogin = [
     body('password')
         .if(body('authMethod').equals('local'))
         .notEmpty()
-        .withMessage('Password is required for login.')
-        .isLength({ min: 8, max: 20 })
-        .withMessage('Password must be at least 8 and at most 20 characters.'),
+        .withMessage('Password is required for login.'),
     body('authId')
         .if(body('authMethod').not().equals('local'))
         .notEmpty()

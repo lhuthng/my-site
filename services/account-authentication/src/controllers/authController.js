@@ -7,7 +7,7 @@ const { JWT_SECRET } = process.env;
 export const createUser = async (req, res) => {
     const { username, email, password, authMethod, authId } = req.body;
     try {
-        let user = undefined;
+        let user;
         let detail = "";
         if (authMethod === 'local') {
             if (await User.findByEmail(email)) {
@@ -21,8 +21,9 @@ export const createUser = async (req, res) => {
                     username,
                     email,
                     password,
-                    authMethod
-                })
+                    authMethod,
+                    verified: false
+                });
             }
         }
         else {
@@ -36,7 +37,8 @@ export const createUser = async (req, res) => {
                 user = new User({
                     username,
                     authId,
-                    authMethod
+                    authMethod,
+                    verified: true
                 })
             }
         }
@@ -44,6 +46,17 @@ export const createUser = async (req, res) => {
             await user.save();
             const userResponse = user.toObject();
             delete userResponse.password;
+            if (authMethod === 'local') {
+                // TODO: send this token to the email to verify the user
+                const token = jwt.sign(
+                    {
+                        email,
+                        type: 'verification'
+                    },
+                    JWT_SECRET
+                )
+                console.log(token);
+            }
             res.status(201).json(userResponse);
         }
         else {
@@ -52,8 +65,9 @@ export const createUser = async (req, res) => {
                 detail
             })
         }
-    } catch (err) {
-        res.status(500).json({ message: err.message });
+    } catch (error) {
+        console.error('Error: ', error.message);
+        res.status(500).json({ message: 'Failed to create a user' });
     }
 };
 
@@ -69,6 +83,10 @@ export const login = async (req, res) => {
             if (!isValid) {
                 return res.status(401).json({ errors: "Invalid email or password."});
             }
+            const isVerified = await user.isVerified();
+            if (!isVerified) {
+                return res.status(401).json({ errors: "The account is not verified."});
+            }
             const token = jwt.sign(
                 { userId: user._id },
                 JWT_SECRET,
@@ -81,8 +99,8 @@ export const login = async (req, res) => {
             // TODO: WRITE LOGIN FOR OAUTH
         }
 
-    } catch (err) {
-        console.error('Login error: ', err);
-        res.status(500).json({ message: 'Login failed' });
+    } catch (error) {
+        console.error('Error: ', error);
+        res.status(500).json({ message: 'Failed to login' });
     }
 };

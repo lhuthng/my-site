@@ -33,6 +33,11 @@ const userSchema = new Schema({
         required: true,
         default: 'local'
     },
+    verified: {
+        type: Boolean,
+        required: true,
+        default: false
+    },
     createAt: {
         type: Date,
         default: Date.now
@@ -51,13 +56,17 @@ userSchema.pre('save', async function(next) {
     }
 });
 
-userSchema.methods.comparePassword = async function (password) {
+userSchema.methods.comparePassword = async function(password) {
     return await compare(password, this.password);
+};
+
+userSchema.methods.isVerified = async function() {
+    return this.verified;
 };
 
 userSchema.static.findByUserId = async function(userId) {
     return await this.findOne({ _id: userId });
-}
+};
 
 userSchema.statics.findByEmail = async function(email) {
     return await this.findOne({ email });
