@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "user-auth/proto";
+
+service UserAuthService {
+    rpc createLocalUser (CreateLocalUserRequest) returns (CreateUserResponse);
+    rpc createOAuthUser (CreateOAuthUserRequest) returns (CreateUserResponse);
+    rpc loginLocal (LoginLocalRequest) returns (LoginResponse);
+    rpc loginOAuth (LoginOAuthRequest) returns (LoginResponse);
+    rpc activateUser (ActivateUserRequest) returns (ActivateUserResponse);
+    rpc requestDelete (RequestDeleteRequest) returns (RequestDeleteResponse);
+    rpc deleteUser (DeleteUserRequest) returns (DeleteUserResponse);
+}
+
+message CreateLocalUserRequest {
+    string username = 1;
+    string email = 2;
+    string password = 3;
+}
+
+message CreateOAuthUserRequest {
+    string authId = 1;
+    string authMethod = 2;
+}
+
+message CreateUserResponse {
+    string userId = 1;
+    string activationToken = 2;
+    string message = 3;
+}
+
+message LoginLocalRequest {
+    string email = 1;
+    string password = 3;
+}
+
+message LoginOAuthRequest {
+    string authId = 1;
+    string authMethod = 2;
+}
+
+message LoginResponse {
+    string userId = 1;
+    string authenticationToken = 2;
+    string message = 3;
+}
+
+message ActivateUserRequest {
+    string activationToken = 1;
+}
+
+message ActivateUserResponse {
+    string email = 1;
+    string message = 2;
+}
+
+message RequestDeleteRequest {
+    string authenticationToken = 1;
+}
+
+message RequestDeleteResponse {
+    string deletionToken = 1;
+    string message = 2;
+}
+
+message DeleteUserRequest {
+    string deletionToken = 1;
+}
+
+message DeleteUserResponse {
+    string message = 1;
+}

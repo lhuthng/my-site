@@ -1,0 +1,36 @@
+services:
+  database:
+    image: mongo
+    container_name: mongodb
+    env_file:
+      - .env
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGO_DB}
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - authnet
+    command: mongod --quiet --logpath /dev/null 
+  service:
+    build: .
+    container_name: user-auth
+    depends_on:
+      - database
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    environment:
+      - MONGO_URI=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB}?authSource=admin
+      - JWT_SECRET=${JWT_SECRET}
+    networks:
+      - authnet
+volumes:
+  mongodb_data:
+    driver: local
+
+networks:
+  authnet:
+    driver: bridge
