@@ -12,6 +12,7 @@ type Model struct {
 	Name        string
 	Collection  *mongo.Collection
 	IndexModels []mongo.IndexModel
+	GetSchema   func() any
 }
 
 func (model *Model) IsDown() error {
@@ -29,14 +30,15 @@ func (model *Model) SetIndexes(ctx context.Context, client *db.MongoClient) erro
 	return nil
 }
 
-func (model *Model) FindOne(ctx context.Context, filter any, output any) error {
+func (model *Model) FindOne(ctx context.Context, filter any) (any, error) {
 	if err := model.IsDown(); err != nil {
-		return err
+		return nil, err
 	}
+	output := model.GetSchema()
 	if err := model.Collection.FindOne(ctx, filter).Decode(output); err != nil {
-		return fmt.Errorf("failed to find %s - %w", model.Name, err)
+		return nil, fmt.Errorf("failed to find %s - %w", model.Name, err)
 	}
-	return nil
+	return output, nil
 }
 
 func (model *Model) UpdateOne(ctx context.Context, filter any, update any) (*mongo.UpdateResult, error) {

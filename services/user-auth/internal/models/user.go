@@ -41,17 +41,11 @@ func NewUserModel(ctx context.Context, client *db.MongoClient) *UserModel {
 					Options: options.Index().SetUnique(true).SetSparse(true),
 				},
 			},
+			GetSchema: func() any {
+				return &User{}
+			},
 		},
 	}
 	userModel.SetIndexes(ctx, client)
 	return &userModel
-}
-
-func (userModel *UserModel) FindOne(ctx context.Context, filter any) (*User, error) {
-	var user User
-	if err := userModel.Model.FindOne(ctx, filter, &user); err != nil {
-		return nil, err
-	} else {
-		return &user, nil
-	}
 }

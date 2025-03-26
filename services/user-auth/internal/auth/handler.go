@@ -105,12 +105,16 @@ func (s *Server) ActivateUser(ctx context.Context, req *pb.ActivateUserRequest) 
 
 	filter := bson.M{"email": email}
 	update := bson.M{"$set": bson.M{"activated": true}}
-	user, err := s.UserModel.FindOne(ctx, filter)
+	abst, err := s.UserModel.FindOne(ctx, filter)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "failed to activate user - %v", err)
 	}
-	if user == nil {
+	if abst == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "failed to activate user - no user found")
+	}
+	user, ok := abst.(*models.User)
+	if !ok {
+		return nil, status.Errorf(codes.Internal, "failed activate user - wrong type of model")
 	}
 	if user.Activated {
 		return nil, status.Errorf(codes.AlreadyExists, "failed to activate user - user is already activated")
