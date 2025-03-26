@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package proto;
 
-option go_package = "user-auth/proto";
+option go_package = "proto/user";
 
 service UserAuthService {
     rpc createLocalUser (CreateLocalUserRequest) returns (CreateUserResponse);
@@ -28,7 +28,6 @@ message CreateOAuthUserRequest {
 message CreateUserResponse {
     string userId = 1;
     string activationToken = 2;
-    string message = 3;
 }
 
 message LoginLocalRequest {
@@ -44,7 +43,6 @@ message LoginOAuthRequest {
 message LoginResponse {
     string userId = 1;
     string authenticationToken = 2;
-    string message = 3;
 }
 
 message ActivateUserRequest {
@@ -53,7 +51,6 @@ message ActivateUserRequest {
 
 message ActivateUserResponse {
     string email = 1;
-    string message = 2;
 }
 
 message RequestDeleteRequest {
@@ -62,7 +59,6 @@ message RequestDeleteRequest {
 
 message RequestDeleteResponse {
     string deletionToken = 1;
-    string message = 2;
 }
 
 message DeleteUserRequest {
@@ -70,5 +66,5 @@ message DeleteUserRequest {
 }
 
 message DeleteUserResponse {
-    string message = 1;
+    string email = 1;
 }

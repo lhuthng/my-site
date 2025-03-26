@@ -8,28 +8,32 @@ import (
 
 	// execute `protoc --go_out=. --go-grpc_out=. --proto_path=. ./proto/user.proto` to hide red curly lines
 	// But it's fine not to do that, docker will generate the files
+	"user-auth/internal/db"
 	"user-auth/internal/models"
-	pb "user-auth/proto"
+	pb "user-auth/proto/user"
 
 	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 var jwtSecret = os.Getenv("JWT_SECRET")
 var bJwtSecret = []byte(jwtSecret)
 
 type Server struct {
+	JwtSecret string
+	BwtSecret []byte
+	UserModel models.UserModel
 	pb.UnimplementedUserAuthServiceServer
 }
 
-type ActivationClaim struct {
-	Email string `json:"email"`
-	jwt.RegisteredClaims
-}
-
-type SessionClaim struct {
-	Session string `json:"session"`
-	jwt.RegisteredClaims
+func NewServer(ctx context.Context, secret string, client *db.MongoClient) *Server {
+	return &Server{
+		JwtSecret: secret,
+		BwtSecret: []byte(secret),
+		UserModel: *models.NewUserModel(ctx, client),
+	}
 }
 
 func EncodeJWT(payload string) (string, error) {
@@ -43,28 +47,26 @@ func EncodeJWT(payload string) (string, error) {
 	})
 
 	if tokenString, err := token.SignedString(bJwtSecret); err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to sign token - %v", err)
 	} else {
 		return tokenString, nil
 	}
 }
 
-func DecodeJWT(tokenString string, claimType jwt.Claims) (*jwt.MapClaims, error) {
+func DecodeJWT(tokenString string) (*jwt.MapClaims, error) {
 	if jwtSecret == "" {
 		return nil, fmt.Errorf("jwt_secret is not found")
 	}
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 		return bJwtSecret, nil
 	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 	if err != nil {
-		return nil, fmt.Errorf("%s", err)
+		return nil, err
 	}
-	fmt.Println(token)
 	if claims, ok := token.Claims.(jwt.MapClaims); ok {
-		fmt.Println(claims)
 		return &claims, nil
 	}
-	return nil, fmt.Errorf("Error")
+	return nil, fmt.Errorf("cannot extract claims")
 }
 
 func (s *Server) CreateLocalUser(ctx context.Context, req *pb.CreateLocalUserRequest) (*pb.CreateUserResponse, error) {
@@ -75,32 +77,48 @@ func (s *Server) CreateLocalUser(ctx context.Context, req *pb.CreateLocalUserReq
 		AuthMethod: "local",
 		Activated:  false,
 	}
-	_, err := models.InsertUser(user)
+	insertedResult, err := s.UserModel.InsertOne(ctx, &user)
 	if err != nil {
-		return nil, fmt.Errorf("failed to insert user: %w", err)
+		return nil, status.Errorf(codes.Internal, "failed to insert user - %v", err)
 	}
 	tokenStr, err := EncodeJWT(req.Email)
 	if err == nil {
 		return &pb.CreateUserResponse{
-			UserId:          req.Username,
+			UserId:          insertedResult.InsertedID.(bson.ObjectID).Hex(),
 			ActivationToken: tokenStr,
-			Message:         "success",
 		}, nil
 	}
-	return nil, fmt.Errorf("failed to encode %w", err)
+	return nil, status.Errorf(codes.Internal, "failed to encode token - %v", err)
 }
 
 func (s *Server) ActivateUser(ctx context.Context, req *pb.ActivateUserRequest) (*pb.ActivateUserResponse, error) {
-	decodedClaims, err := DecodeJWT(req.ActivationToken, &ActivationClaim{})
+	decodedClaims, err := DecodeJWT(req.ActivationToken)
 	if decodedClaims == nil || err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.InvalidArgument, "failed to decode token - %v", err)
 	}
-	email := (*decodedClaims)["payload"]
-	if _, err := models.UpdateOneUser(bson.D{{"email", email}}, bson.D{{"$set", bson.D{{"activated", true}}}}); err == nil {
-		return nil, err
+
+	email := (*decodedClaims)["payload"].(string)
+	exp := (*decodedClaims)["exp"].(float64)
+	if !time.Now().Before(time.Unix(int64(exp), 0)) {
+		return nil, status.Errorf(codes.DeadlineExceeded, "failed to activate user - token is expired")
+	}
+
+	filter := bson.M{"email": email}
+	update := bson.M{"$set": bson.M{"activated": true}}
+	user, err := s.UserModel.FindOne(ctx, filter)
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "failed to activate user - %v", err)
+	}
+	if user == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "failed to activate user - no user found")
+	}
+	if user.Activated {
+		return nil, status.Errorf(codes.AlreadyExists, "failed to activate user - user is already activated")
+	}
+	if _, err = s.UserModel.UpdateOne(ctx, filter, update); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to activate user - %v", err)
 	}
 	return &pb.ActivateUserResponse{
-		Email:   email.(string),
-		Message: "success",
+		Email: email,
 	}, nil
 }

@@ -7,7 +7,6 @@ import (
 	"os"
 	"time"
 	"user-auth/internal/db"
-	"user-auth/internal/models"
 	"user-auth/internal/server"
 )
 
@@ -29,8 +28,5 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	if models.SetUsersCollection(ctx, *client) != nil {
-		log.Fatal(err)
-	}
-	server.StartGRPCServer()
+	server.StartGRPCServer(ctx, client)
 }

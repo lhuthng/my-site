@@ -70,18 +70,14 @@ type OAuthUser interface {
 
 func UserDetailInterceptors(
 	ctx context.Context,
-	req interface{},
+	req any,
 	info *grpc.UnaryServerInfo,
 	handler grpc.UnaryHandler,
-) (interface{}, error) {
+) (any, error) {
 	if _, needValidateUser := protectedMethods[info.FullMethod]; !needValidateUser {
 		return handler(ctx, req)
 	}
-	fmt.Println(protectedMethods[info.FullMethod])
-	fmt.Println(info.FullMethod)
 	user, ok := req.(LocalUser)
-	fmt.Println(user)
-	fmt.Println(ok)
 	if ok {
 		if err := validateUsername(user.GetUsername()); err != nil {
 			return nil, fmt.Errorf("invalid username, %w", err)
@@ -96,7 +92,6 @@ func UserDetailInterceptors(
 		// TODO:
 		return nil, fmt.Errorf("not implemented")
 	} else {
-		fmt.Println("Not ok right?")
 		return nil, fmt.Errorf("invalid request")
 	}
 	return handler(ctx, req)

@@ -9,13 +9,12 @@ import (
 )
 
 type MongoClient struct {
-	Client     *mongo.Client
-	Database   *mongo.Database
-	Collection *mongo.Collection
+	Client   *mongo.Client
+	Database *mongo.Database
 }
 
 type MongoCollection struct {
-	*mongo.Collection
+	Collection *mongo.Collection
 }
 
 func Connect(uri, database string) (*MongoClient, error) {
@@ -44,12 +43,4 @@ func (client *MongoClient) Use(collectionName string) *MongoCollection {
 	return &MongoCollection{
 		Collection: client.Database.Collection(collectionName),
 	}
-}
-
-func (collection *MongoCollection) InsertOne(document interface{}) (*mongo.InsertOneResult, error) {
-	return collection.Collection.InsertOne(context.Background(), document)
-}
-
-func (collection *MongoCollection) FindOne(filter interface{}) *mongo.SingleResult {
-	return collection.Collection.FindOne(context.Background(), filter)
 }

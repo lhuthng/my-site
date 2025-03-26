@@ -14,7 +14,6 @@ RUN go mod tidy
 
 # Compile user.proto. the pb.go files will be generated in the "go_package = "user-auth/proto"" location
 RUN protoc --go_out=. --go-grpc_out=. --proto_path=. proto/user.proto   
-RUN mv ./user-auth/proto/* ./proto/
 
 RUN go build -o /bin/user-auth ./main.go
 
