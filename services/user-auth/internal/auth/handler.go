@@ -22,17 +22,19 @@ var jwtSecret = os.Getenv("JWT_SECRET")
 var bJwtSecret = []byte(jwtSecret)
 
 type Server struct {
-	JwtSecret string
-	BwtSecret []byte
-	UserModel models.UserModel
+	JwtSecret    string
+	BwtSecret    []byte
+	UserModel    models.UserModel
+	SessionModel models.SessionModel
 	pb.UnimplementedUserAuthServiceServer
 }
 
 func NewServer(ctx context.Context, secret string, client *db.MongoClient) *Server {
 	return &Server{
-		JwtSecret: secret,
-		BwtSecret: []byte(secret),
-		UserModel: *models.NewUserModel(ctx, client),
+		JwtSecret:    secret,
+		BwtSecret:    []byte(secret),
+		UserModel:    *models.NewUserModel(ctx, client),
+		SessionModel: *models.NewSessionModel(ctx, client),
 	}
 }
 
@@ -91,7 +93,7 @@ func (s *Server) CreateLocalUser(ctx context.Context, req *pb.CreateLocalUserReq
 	return nil, status.Errorf(codes.Internal, "failed to encode token - %v", err)
 }
 
-func (s *Server) ActivateUser(ctx context.Context, req *pb.ActivateUserRequest) (*pb.ActivateUserResponse, error) {
+func (server *Server) ActivateUser(ctx context.Context, req *pb.ActivateUserRequest) (*pb.ActivateUserResponse, error) {
 	decodedClaims, err := DecodeJWT(req.ActivationToken)
 	if decodedClaims == nil || err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "failed to decode token - %v", err)
@@ -105,24 +107,60 @@ func (s *Server) ActivateUser(ctx context.Context, req *pb.ActivateUserRequest) 
 
 	filter := bson.M{"email": email}
 	update := bson.M{"$set": bson.M{"activated": true}}
-	abst, err := s.UserModel.FindOne(ctx, filter)
+	abst, err := server.UserModel.FindOne(ctx, filter)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "failed to activate user - %v", err)
 	}
 	if abst == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "failed to activate user - no user found")
 	}
-	user, ok := abst.(*models.User)
-	if !ok {
+	if user, ok := abst.(*models.User); !ok {
 		return nil, status.Errorf(codes.Internal, "failed activate user - wrong type of model")
-	}
-	if user.Activated {
+	} else if user.Activated {
 		return nil, status.Errorf(codes.AlreadyExists, "failed to activate user - user is already activated")
 	}
-	if _, err = s.UserModel.UpdateOne(ctx, filter, update); err != nil {
+	if _, err = server.UserModel.UpdateOne(ctx, &filter, &update); err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to activate user - %v", err)
 	}
 	return &pb.ActivateUserResponse{
 		Email: email,
+	}, nil
+}
+
+func (server *Server) LoginLocal(ctx context.Context, req *pb.LoginLocalRequest) (*pb.LoginResponse, error) {
+	const errorString = "failed to login"
+	filter := bson.M{"email": req.Email}
+	abst, err := server.UserModel.FindOne(ctx, filter)
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "%s - %v", errorString, err)
+	}
+	if abst == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "%s - no user found", errorString)
+	}
+	user, ok := abst.(*models.User)
+	if !ok {
+		return nil, status.Errorf(codes.Internal, "%s - wrong type of model", errorString)
+	}
+	if !user.Activated {
+		return nil, status.Errorf(codes.AlreadyExists, "%s - user is not activated", errorString)
+	}
+	if user.Password == nil {
+		return nil, status.Errorf(codes.Internal, "%s - local user has no password", errorString)
+	}
+	compareResult, err := user.ComparePassword(req.Password)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "%s - %v", errorString, err)
+	}
+	if !compareResult {
+		return nil, status.Errorf(codes.Aborted, "%s - password is incorrect", errorString)
+	}
+	tokenStr, err := EncodeJWT(user.Id.Hex())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "%s - failed to encode", errorString)
+	}
+	// TODO: Add to the session
+	return &pb.LoginResponse{
+		UserId:              user.Id.Hex(),
+		AuthenticationToken: tokenStr,
 	}, nil
 }
