@@ -12,6 +12,8 @@ service UserAuthService {
     rpc activateUser (ActivateUserRequest) returns (ActivateUserResponse);
     rpc requestDelete (RequestDeleteRequest) returns (RequestDeleteResponse);
     rpc deleteUser (DeleteUserRequest) returns (DeleteUserResponse);
+    rpc renewToken (RenewTokenRequest) returns (RenewTokenResponse);
+    rpc validateToken (ValidateTokenRequest) returns (ValidateTokenResponse);
 }
 
 message CreateLocalUserRequest {
@@ -43,6 +45,7 @@ message LoginOAuthRequest {
 message LoginResponse {
     string userId = 1;
     string authenticationToken = 2;
+    int64 expiresAt = 3;
 }
 
 message ActivateUserRequest {
@@ -67,4 +70,19 @@ message DeleteUserRequest {
 
 message DeleteUserResponse {
     string email = 1;
+}
+
+message RenewTokenRequest {
+    string userId = 1;
+}
+
+message RenewTokenResponse {
+    string authenticationToken = 1;
+    int64 expiresAt = 2;
+}
+
+message ValidateTokenRequest {
+}
+
+message ValidateTokenResponse {
 }

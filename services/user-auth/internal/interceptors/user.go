@@ -7,12 +7,9 @@ import (
 	"unicode"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
-
-var protectedMethods = map[string]bool{
-	"/proto.UserAuthService/createLocalUser": true,
-	"/proto.UserAuthService/createOAuthUser": true,
-}
 
 func validateUsername(username string) error {
 	if len(username) < 3 || len(username) > 20 {
@@ -68,31 +65,37 @@ type OAuthUser interface {
 	GetAuthMethod() string
 }
 
+var userDetailMethods = map[string]bool{
+	"/proto.UserAuthService/createLocalUser": true,
+	"/proto.UserAuthService/createOAuthUser": true,
+}
+
 func UserDetailInterceptors(
 	ctx context.Context,
 	req any,
 	info *grpc.UnaryServerInfo,
 	handler grpc.UnaryHandler,
 ) (any, error) {
-	if _, needValidateUser := protectedMethods[info.FullMethod]; !needValidateUser {
+	if _, needValidateUser := userDetailMethods[info.FullMethod]; !needValidateUser {
 		return handler(ctx, req)
 	}
-	user, ok := req.(LocalUser)
-	if ok {
+
+	switch user := req.(type) {
+	case LocalUser:
 		if err := validateUsername(user.GetUsername()); err != nil {
-			return nil, fmt.Errorf("invalid username, %w", err)
+			return nil, status.Errorf(codes.InvalidArgument, "invalid username, %v", err)
 		}
 		if err := validatePassword(user.GetPassword()); err != nil {
-			return nil, fmt.Errorf("invalid password, %w", err)
+			return nil, status.Errorf(codes.InvalidArgument, "invalid password, %v", err)
 		}
 		if err := validateEmail(user.GetEmail()); err != nil {
-			return nil, fmt.Errorf("invalid email, %w", err)
+			return nil, status.Errorf(codes.InvalidArgument, "invalid email, %v", err)
 		}
-	} else if _, ok := req.(OAuthUser); ok {
-		// TODO:
-		return nil, fmt.Errorf("not implemented")
-	} else {
-		return nil, fmt.Errorf("invalid request")
+		return handler(ctx, req)
+	case OAuthUser:
+		// TODO: Implement OAuthUser
+		return nil, status.Errorf(codes.Internal, "not implemented")
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "invalid request")
 	}
-	return handler(ctx, req)
 }

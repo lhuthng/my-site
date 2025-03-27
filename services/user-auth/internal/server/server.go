@@ -21,14 +21,13 @@ func StartGRPCServer(ctx context.Context, client *db.MongoClient) {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	grpcServer := grpc.NewServer(
-		interceptors.ChainUnaryInterceptors(),
-	)
-
 	server := auth.NewServer(
 		ctx,
 		os.Getenv("JWT_SECRET"),
 		client,
+	)
+	grpcServer := grpc.NewServer(
+		interceptors.ChainUnaryInterceptors(),
 	)
 	pb.RegisterUserAuthServiceServer(grpcServer, server)
 

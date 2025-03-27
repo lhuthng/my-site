@@ -7,12 +7,13 @@ import (
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type Getter interface {
 	GetSchema() any
-	GetPreUpdate(update *bson.M) *bson.M
-	GetPreInsert(record any) any
+	GetPreUpdate(*bson.M) *bson.M
+	GetPreInsert(any) any
 }
 
 type Model struct {
@@ -57,40 +58,43 @@ func (model *Model) SetIndexes(ctx context.Context, client *db.MongoClient) erro
 	return nil
 }
 
-func (model *Model) FindOne(ctx context.Context, filter any) (any, error) {
+func (model *Model) FindOne(ctx context.Context, filter any) (*mongo.SingleResult, error) {
 	if err := model.IsDown(); err != nil {
 		return nil, err
 	}
-	fmt.Println(model)
-	output := model.Getter.GetSchema()
-	if err := model.Collection.FindOne(ctx, filter).Decode(output); err != nil {
-		return nil, fmt.Errorf("failed to find %s - %w", model.Name, err)
-	}
-	return output, nil
+	// ERROR IS IN THE RESULT!!!
+	result := model.Collection.FindOne(ctx, filter)
+	return result, result.Err()
 }
 
-func (model *Model) UpdateOne(ctx context.Context, filter *bson.M, update *bson.M) (*mongo.UpdateResult, error) {
+func (model *Model) FindOneD(ctx context.Context, filter any) (any, error) {
+	result, err := model.FindOne(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	output := model.Getter.GetSchema()
+	err = result.Decode(output)
+	return output, err
+}
+
+func (model *Model) UpdateOne(ctx context.Context, filter *bson.M, update *bson.M, opts ...options.Lister[options.UpdateOneOptions]) (*mongo.UpdateResult, error) {
 	if err := model.IsDown(); err != nil {
 		return nil, err
 	}
-	fmt.Println(update)
 	update = model.GetPreUpdate(update)
-	fmt.Println(update)
-	if updateResult, err := model.Collection.UpdateOne(ctx, filter, update); err != nil {
+	if updateResult, err := model.Collection.UpdateOne(ctx, filter, update, opts...); err != nil {
 		return nil, fmt.Errorf("failed to update %s / %w", model.Name, err)
 	} else {
 		return updateResult, nil
 	}
 }
 
-func (model *Model) InsertOne(ctx context.Context, record any) (*mongo.InsertOneResult, error) {
+func (model *Model) InsertOne(ctx context.Context, record any, opts ...options.Lister[options.InsertOneOptions]) (*mongo.InsertOneResult, error) {
 	if err := model.IsDown(); err != nil {
 		return nil, err
 	}
-	fmt.Println(record)
 	record = model.Getter.GetPreInsert(record)
-	fmt.Println(record)
-	insertResult, err := model.Collection.InsertOne(ctx, record)
+	insertResult, err := model.Collection.InsertOne(ctx, record, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to insert %s / %w", model.Name, err)
 	}
