@@ -1,7 +1,7 @@
 services:
-  database:
-    image: mongo
-    container_name: mongodb
+  user_auth_database:
+    image: mongo:latest
+    container_name: user-auth-database
     env_file:
       - .env
     environment:
@@ -9,15 +9,15 @@ services:
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
       - MONGO_INITDB_DATABASE=${MONGO_DB}
     volumes:
-      - mongodb_data:/data/db
+      - user_auth_data:/data/user_auth_db/
     networks:
       - authnet
     command: mongod --quiet --logpath /dev/null 
-  service:
+  user_auth_service:
     build: .
-    container_name: user-auth
+    container_name: user-auth-backend
     depends_on:
-      - database
+      - user_auth_database
     ports:
       - "5000:5000"
     env_file:
@@ -28,7 +28,7 @@ services:
     networks:
       - authnet
 volumes:
-  mongodb_data:
+  user_auth_data:
     driver: local
 
 networks:
