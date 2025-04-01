@@ -1,0 +1,9 @@
+[package]
+name = "sf-core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+diesel = { version = "2.2.8", features = ["postgres"] }
+tokio = { version = "1.44.1", features = ["full"] }
+diesel-async = { version = "0.5.2", features = ["postgres", "tokio"] }

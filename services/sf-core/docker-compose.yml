@@ -1,0 +1,41 @@
+services:
+  sf_core_database:
+    image: postgres:latest
+    container_name: sf-core-database
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${POSTGRESQL_USERNAME}
+      - POSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}
+      - POSTGRES_DB=${POSTGRESQL_DB}
+      - PGPORT=${POSTGRESQL_PORT}
+    volumes:
+      - sf_core_data:/data/sf_core_db/
+    networks:
+      - sfnet
+  sf_core_service:
+    build: .
+    container_name: sf-core-backend
+    depends_on:
+      - sf_core_database
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    environment:
+      - POSTGRESQL_USERNAME
+      - POSTGRESQL_PASSWORD
+      - POSTGRESQL_DB
+      - POSTGRESQL_HOST
+      - POSTGRESQL_PORT
+      - PORT
+      - DATABASE_URL=postgres://${POSTGRESQL_USERNAME}:${POSTGRESQL_PASSWORD}@${POSTGRESQL_HOST}:${POSTGRESQL_PORT}/${POSTGRESQL_DB}
+    networks:
+      - sfnet
+volumes:
+  sf_core_data:
+    driver: local
+
+networks:
+  sfnet:
+    driver: bridge
