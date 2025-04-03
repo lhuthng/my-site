@@ -14,12 +14,12 @@ CREATE TABLE users (
 
 CREATE TABLE attributes (
     id SERIAL PRIMARY KEY,
-    "int_point" INT DEFAULT 0,
-    "str_point" INT DEFAULT 0,
-    "dex_point" INT DEFAULT 0,
-    "lck_point" INT DEFAULT 0,
-    "con_point" INT DEFAULT 0,
     "entity_id" INT REFERENCES entities(id)
+    "int_points" INT DEFAULT 0,
+    "str_points" INT DEFAULT 0,
+    "dex_points" INT DEFAULT 0,
+    "lck_points" INT DEFAULT 0,
+    "con_points" INT DEFAULT 0,
 );
 
 CREATE TYPE character_class AS ENUM ('warrior', 'mage', 'archer');
@@ -38,7 +38,7 @@ CREATE TABLE characters (
     "mushroom" INT DEFAULT 0
 );
 
-CREATE TABLE inventory (
+CREATE TABLE inventories (
     id SERIAL PRIMARY KEY,
     "character_id" INT REFERENCES characters(id) ON DELETE CASCADE,
     "capacity" INT DEFAULT 6
@@ -52,7 +52,7 @@ CREATE TABLE items (
     "inventory_id" INT REFERENCES inventory(id),
     "entity_id" INT REFERENCES entities(id),
     "slot_number" INT,
-    "armor_point" INT DEFAULT 0,
+    "armor_poinst" INT DEFAULT 0,
     "price" INT DEFAULT 0,
     "quantity" INT DEFAULT 1,
     CONSTRAINT unique_slot UNIQUE (inventory_id, slot_number)
@@ -100,7 +100,7 @@ BEGIN
     RETURNING id INTO p_character_id;
 
     -- Insert a new inventory for the character
-    INSERT INTO inventory ("character_id")
+    INSERT INTO inventories ("character_id")
     VALUES (p_character_id)
     RETURNING id INTO p_inventory_id;
 
@@ -118,12 +118,12 @@ CREATE OR REPLACE FUNCTION add_new_item(
     p_slot_number INT,
     p_price INT,
     p_quantity INT,
-    p_str_point INT,
-    p_int_point INT,
-    p_dex_point INT,
-    p_lck_point INT,
-    p_con_point INT,
-    p_armor_point INT
+    p_str_points INT,
+    p_int_points INT,
+    p_dex_points INT,
+    p_lck_points INT,
+    p_con_points INT,
+    p_armor_points INT
 )
 RETURNS VOID AS $$
 DECLARE
@@ -137,11 +137,11 @@ BEGIN
 
     -- Insert a new item
     INSERT INTO items ("name", "description", "item_type", "inventory_id", "entity_id", "slot_number", "price", "quantity", "armor_point")
-    VALUES (p_name, p_description, p_item_type, p_inventory_id, p_entity_id, p_slot_number, p_price, p_quantity, p_armor_point)
+    VALUES (p_name, p_description, p_item_type, p_inventory_id, p_entity_id, p_slot_number, p_price, p_quantity, p_armor_points)
     RETURNING id INTO p_item_id;
 
     -- Insert attributes for the item
-    INSERT INTO attributes ("int_point", "str_point", "dex_point", "lck_point", "con_point", "entity_id")
-    VALUES (p_int_point, p_str_point, p_dex_point, p_lck_point, p_con_point, p_entity_id);
+    INSERT INTO attributes ("int_points", "str_points", "dex_points", "lck_points", "con_points", "entity_id")
+    VALUES (p_int_points, p_str_points, p_dex_points, p_lck_points, p_con_points, p_entity_id);
 END;
 $$ LANGUAGE plpgsql;
