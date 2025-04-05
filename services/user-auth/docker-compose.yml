@@ -5,9 +5,9 @@ services:
     env_file:
       - .env
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
-      - MONGO_INITDB_DATABASE=${MONGO_DB}
+      - MONGO_INITDB_ROOT_USERNAME=${DB_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${DB_PASSWORD}
+      - MONGO_INITDB_DATABASE=${DB_DATABASE}
     volumes:
       - user_auth_data:/data/user_auth_db/
     networks:
@@ -23,7 +23,7 @@ services:
     env_file:
       - .env
     environment:
-      - MONGO_URI=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@localhost:${MONGO_PORT}/${MONGO_DB}?authSource=admin
+      - MONGO_URI=mongodb://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}?authSource=admin
       - JWT_SECRET=${JWT_SECRET}
     networks:
       - authnet
