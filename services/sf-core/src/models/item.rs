@@ -1,11 +1,14 @@
 use crate::schema::items;
-use diesel::{Queryable, Insertable};
 
-#[derive(Debug, Clone, Copy, SqlType, FromSqlRow, AsExpression)]
-#[diesel(sql_type = Text)]
+use sqlx::FromRow;
+use sqlx::Type;
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Copy, Deserialize, Serialize, Type)]
+#[sqlx(type_name = "item_type")]
 pub enum ItemType {
     weapon,
-    helment,
+    helmet,
     robe,
     gloves,
     boots,
@@ -15,7 +18,7 @@ pub enum ItemType {
     belt,
 }
 
-#[derive(Debug, Queryable)]
+#[derive(FromRow)]
 pub struct Item {
     pub id: i32,
     pub name: String,

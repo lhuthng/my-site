@@ -1,14 +1,17 @@
 use craete::schema::entities;
-use diesel::{Queryable, Insertable};
 
-#[derive(Debug, Clone, Copy, SqlType, FromSqlRow, AsExpression)]
-#[diesel(sql_type = Text)]
+use sqlx::FromRow;
+use sqlx::Type;
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Copy, Deserialize, Serialize, Type)]
+#[sqlx(type_name = "item_type")]
 pub enum EntityType {
     item,
     character
 }
 
-#[derive(Debug, Queryable)]
+#[derive(FromRow)]
 pub struct Entity {
     pub id: i32,
     #[diesel(column_name = "type")]

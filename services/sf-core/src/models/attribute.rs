@@ -1,7 +1,8 @@
 use crate::schema::attributes;
-use diesel::{Queryable, Insertable};
 
-#[derive(Debug, Queryable)]
+use sqlx::FromRow
+
+#[derive(FromRow)]
 pub struct Attribute {
     pub id: i32,
     pub entity_id: i32,

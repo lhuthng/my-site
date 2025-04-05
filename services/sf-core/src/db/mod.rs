@@ -1,11 +1,15 @@
-use diesel::prelude::*;
-use diesel::pg::PgConnection;
-use std::env;
+use sqlx::{PgPool, Error};
+use sqlx::migrate;
+use tokio::fs;
+use tokio::io;
+use tokio::fs::DirEntry;
 
-pub fn establish_connection() -> PgConnection {
-
-    let database_url = env::var("DATABASE_URL").expect("Missing DATABASE_URL");
-
-    PgConnection::establish(&database_url)
-        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
+pub async fn Connect(uri: &str) -> Result<PgPool, Error> {
+    let pool = PgPool::connect(uri).await?;
+    let mut entries = fs::read_dir("./migrations").await?;
+    while let Some(entry) = entries.next_entry().await? {
+        println!("{}", entry.path().display());
+    }
+    migrate!("./migrations").run(&pool).await?;
+    Ok(pool)
 }

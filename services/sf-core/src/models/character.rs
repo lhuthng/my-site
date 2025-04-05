@@ -1,15 +1,18 @@
 use crate::schema::characters;
-use diesel::{Queryable, Insertable};
 
-#[derive(Debug, Clone, Copy, SqlType, FromSqlRow, AsExpression)]
-#[diesel(sql_type = Text)]
+use sqlx::FromRow;
+use sqlx::Type;
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Copy, Deserialize, Serialize, Type)]
+#[sqlx(type_name = "item_type")]
 pub enum CharacterClass {
     warrior,
     mage,
     archer,
 }
 
-#[derive(Debug, Queryable)]
+#[derive(FromRow)]
 pub struct Character {
     pub id: i32,
     pub user_id: i32,

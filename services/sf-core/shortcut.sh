@@ -1,0 +1,1 @@
+DATABASE_URL=postgres://postgres:mysecretpassword@localhost:5432/sf_core ./target/release/sf-core

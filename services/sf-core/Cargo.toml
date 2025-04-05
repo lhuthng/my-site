@@ -4,6 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-diesel = { version = "2.2.8", features = ["postgres"] }
-tokio = { version = "1.44.1", features = ["full"] }
-diesel-async = { version = "0.5.2", features = ["postgres", "tokio"] }
+sqlx = { version = "0.8.3", features = ["postgres", "runtime-tokio"] }
+tokio = { version = "1.44.2", features = ["full"] }
+dotenvy = { version = "0.15", features = []}

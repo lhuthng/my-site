@@ -8,9 +8,7 @@ fi
 TIMESTAMP=$(date +"%Y%m%d%H%M%S")
 MIGRATION_NAME="$TIMESTAMP"_"$1"
 
-mkdir -p "migrations/$MIGRATION_NAME"
+touch "migrations/$MIGRATION_NAME.up.sql"
+touch "migrations/$MIGRATION_NAME.down.sql"
 
-touch "migrations/$MIGRATION_NAME/up.sql"
-touch "migrations/$MIGRATION_NAME/down.sql"
-
-echo "Created migration: migrations/$MIGRATION_NAME"
+echo "Created migration: migrations/$MIGRATION_NAME.sql"

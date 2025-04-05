@@ -1,7 +1,8 @@
 use crate::schema::inventories;
-use diesel::{Queryable, Insertable};
 
-#[derive(Debug, Queryable)]
+use sqlx::FromRow;
+
+#[derive(FromRow)]
 pub struct Inventory {
     pub id: i32,
     pub character_id: i32,
