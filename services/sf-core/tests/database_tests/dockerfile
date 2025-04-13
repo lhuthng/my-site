@@ -1,0 +1,8 @@
+FROM postgres:15
+
+RUN apt-get update && apt-get install -y postgresql-15-pgtap
+
+COPY ./migrations/*.up.sql /docker-entrypoint-initdb.d/
+COPY ./tests/database_tests/init_scripts/*.sql /docker-entrypoint-initdb.d/
+
+COPY ./tests/database_tests/test_scripts/*.sql /tests/

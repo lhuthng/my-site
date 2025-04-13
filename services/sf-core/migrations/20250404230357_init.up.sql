@@ -4,19 +4,19 @@ CREATE TYPE "entity_type" AS ENUM (
 );
 CREATE TYPE "character_class" AS ENUM ('warrior', 'mage', 'archer');
 CREATE TYPE "item_type" AS ENUM (
-    'equipable', 'potion'
+    'helmet', 'chest', 'gloves', 'boots', 
+    'necklace', 'belt', 'ring', 'amulet', 
+    'shield', 'weapon', 'potion', 'sub-weapon'
 );
-CREATE TYPE "equipment_type" AS ENUM (
-    'weapon', 'helmet', 'robe', 'gloves', 'boots', 
-    'necklace', 'ring', 'amulet', 'belt'
+CREATE TYPE "item_tier" AS ENUM (
+    'common', 'rare', 'epic', 'legendary'
 );
 CREATE TYPE "resource_type" AS ENUM (
     'gold', 'mushroom'
 );
 CREATE TYPE "container_type" AS ENUM (
-    'inventory', 'shop', 'quest', 'other'
+    'inventory', 'shop'
 );
-
 -- Create tables
 CREATE TABLE "users" (
     "id" SERIAL PRIMARY KEY,
@@ -31,33 +31,49 @@ CREATE TABLE "entities" (
 );
 
 CREATE TABLE "attributes" (
-    "id" INT PRIMARY KEY REFERENCES "entities"("id"),
+    "entity_id" INT PRIMARY KEY REFERENCES "entities"("id") UNIQUE,
     "int_points" INT DEFAULT 0,
     "str_points" INT DEFAULT 0,
     "dex_points" INT DEFAULT 0,
     "lck_points" INT DEFAULT 0,
-    "con_points" INT DEFAULT 0,
-    "armor_points" INT DEFAULT 0
+    "con_points" INT DEFAULT 0
 );
 
 CREATE TABLE "items" (
     "id" SERIAL PRIMARY KEY,
     "name" VARCHAR(255) NOT NULL,
-    "item_type" "item_type" NOT NULL,
+    "type" "item_type" NOT NULL,
+    "tier" "item_tier" NOT NULL,
     "description" TEXT,
     "price" INT DEFAULT 0
 );
 
 CREATE TABLE "equipable_items" (
-    "item_id" INT PRIMARY KEY REFERENCES "items"("id"),
-    "entity_id" INT REFERENCES "entities"("id") UNIQUE,
-    "equipment_type" "equipment_type" NOT NULL
-);
+    "class" "character_class" NOT NULL,
+    "entity_id" INT REFERENCES "entities"("id") UNIQUE
+) INHERITS ("items");
+
+CREATE TABLE "armor_items" (
+    "armor_points" INT DEFAULT 0
+) INHERITS ("equipable_items");
+
+CREATE TABLE "weapon_items" (
+    "min_damage" INT,
+    "max_damage" INT
+) INHERITS ("equipable_items");
+
+CREATE TABLE "shield_items" (
+    "armor_points" INT,
+    "block_chance" INT
+) INHERITS ("equipable_items"); 
+
+CREATE TABLE "accessory_items" (
+    
+) INHERITS ("equipable_items");
 
 CREATE TABLE "potions" (
-    "item_id" INT PRIMARY KEY REFERENCES "items"("id"),
     "quantity" INT DEFAULT 1
-);
+) INHERITS ("items");
 
 CREATE TABLE "characters" (
     "id" SERIAL PRIMARY KEY,
@@ -70,32 +86,38 @@ CREATE TABLE "characters" (
 );
 
 CREATE TABLE "resources" (
-    "character_id" INT PRIMARY KEY REFERENCES "characters"("id"),
+    "character_id" INT REFERENCES "characters"("id") ON DELETE CASCADE,
     "type" "resource_type" NOT NULL,
     "amount" INT DEFAULT 0,
-    CONSTRAINT "unique_resource" UNIQUE ("character_id", "type")
+    PRIMARY KEY ("character_id", "type")
 );
 
-CREATE TABLE "equipment" (
-    "item_id" INT PRIMARY KEY REFERENCES "equipable_items"("item_id"),
+CREATE TABLE "class_slots" (
+    "class" "character_class" NOT NULL,
+    "type" "item_type" NOT NULL,
+    PRIMARY KEY ("class", "type")
+);
+
+CREATE TABLE "equipped_items" (
+    "item_id" INT REFERENCES "items"("id") ON DELETE CASCADE,
     "character_id" INT REFERENCES "characters"("id") ON DELETE CASCADE,
-    "type" "equipment_type" NOT NULL,
-    CONSTRAINT "unique_equipment_slot" UNIQUE ("character_id", "type")
+    "type" "item_type" NOT NULL,
+    PRIMARY KEY ("character_id", "type")
 );
 
 CREATE TABLE "containers" (
     "id" SERIAL PRIMARY KEY,
-    "character_id" INT REFERENCES "characters"("id"),
-    "container_type" "container_type" NOT NULL,
-    "capacity" INT DEFAULT 1,
-    CONSTRAINT "unique_container" UNIQUE ("character_id", "container_type")
+    "character_id" INT REFERENCES "characters"("id") ON DELETE CASCADE,
+    "type" "container_type" NOT NULL,
+    "capacity" INT DEFAULT 1
 );
 
+
 CREATE TABLE "item_locations" (
-    "item_id" INT PRIMARY KEY REFERENCES "items"("id"),
-    "container_id" INT REFERENCES "containers"("id"),
-    "slot_number" INT DEFAULT 1,
-    CONSTRAINT "unique_item_slot" UNIQUE ("container_id", "slot_number")
+    "item_id" INT REFERENCES "items"("id") ON DELETE CASCADE,
+    "container_id" INT REFERENCES "containers"("id") ON DELETE CASCADE,
+    "index" INT DEFAULT 1,
+    CONSTRAINT "container_id_index_unique" UNIQUE ("container_id", "index")
 );
 
 -- Create functions
@@ -103,14 +125,15 @@ CREATE OR REPLACE FUNCTION "add_user"(
     p_external_id VARCHAR(255),
     p_username VARCHAR(255)
 )
-RETURNS VOID AS $$
+RETURNS INT AS $$
+DECLARE
+    p_user_id INT;
 BEGIN
-    IF EXISTS (SELECT 1 FROM "users" WHERE "external_id" = p_external_id) THEN
-        RETURN;
-    END IF;
-
     INSERT INTO "users" ("external_id", "username")
-    VALUES (p_external_id, p_username);
+    VALUES (p_external_id, p_username)
+    RETURNING "id" INTO p_user_id;
+
+    RETURN p_user_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -119,7 +142,7 @@ CREATE OR REPLACE FUNCTION "add_character"(
     p_class "character_class",
     p_name VARCHAR(255)
 )
-RETURNS VOID AS $$
+RETURNS INT AS $$
 DECLARE
     p_entity_id INT;
     p_character_id INT;
@@ -131,18 +154,16 @@ BEGIN
 
     -- Insert a new character
     INSERT INTO "characters" (
-        "user_id", "entity_id", "class", 
-        "name"
+        "user_id", "entity_id", "class", "name"
     )
     VALUES (
-        p_user_id, p_entity_id, p_class, 
-        p_name
+        p_user_id, p_entity_id, p_class, p_name
     )
     RETURNING "id" INTO p_character_id;
 
     -- Insert a new inventory for the character
     INSERT INTO "containers" (
-        "character_id", "container_type", "capacity"
+        "character_id", "type", "capacity"
     )
     VALUES (
         p_character_id, 'inventory', 6
@@ -150,7 +171,7 @@ BEGIN
 
     -- Insert a new shop for the character
     INSERT INTO "containers" (
-        "character_id", "container_type", "capacity"
+        "character_id", "type", "capacity"
     )
     VALUES (
         p_character_id, 'shop', 6
@@ -158,169 +179,222 @@ BEGIN
 
     -- Insert default attributes for the character
     INSERT INTO "attributes" (
-        "id", "str_points", "dex_points", 
-        "int_points", "con_points", "lck_points",
-        "armor_points"
+        "entity_id", "str_points", "dex_points", 
+        "int_points", "con_points", "lck_points"
     )
     VALUES (
         p_entity_id, 10, 10, 
-        10, 10, 10,
-        0
+        10, 10, 10
     );
+
+    RETURN p_character_id;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION "add_item"(
-    p_name VARCHAR(255),
-    p_description TEXT,
-    p_item_type "item_type",
-    p_price INT,
-    p_quantity INT
-)
-RETURNS INTEGER AS $$
-DECLARE
-    p_item_id INT;
-BEGIN
-    -- Insert a new item
-    INSERT INTO "items" (
-        "name", "item_type", "description",
-        "price"
-    )
-    VALUES (
-        p_name, p_item_type, p_description, 
-        p_price
-    )
-    RETURNING "id" INTO p_item_id;
-
-    RETURN p_item_id;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION "add_equipable_item"(
-    p_name VARCHAR(255),
-    p_description TEXT,
-    p_price INT,
-    p_equipment_type "equipment_type",
+CREATE OR REPLACE FUNCTION "add_armor_item"(
+    p_container_id INT,
+    p_index INT,
+    p_class "character_class",
+    p_int_points INT,
     p_str_points INT,
     p_dex_points INT,
-    p_int_points INT,
-    p_con_points INT,
     p_lck_points INT,
-    p_armor_points INT
+    p_con_points INT,
+    p_armor_points INT,
+    p_type "item_type",
+    p_tier "item_tier",
+    p_description TEXT,
+    p_price INT
 )
-RETURNS VOID AS $$
+RETURNS INT AS $$
 DECLARE
     p_entity_id INT;
     p_item_id INT;
 BEGIN
+    -- Check if the container slot is already occupied
+    IF (
+        SELECT 1
+        FROM "item_locations"
+        WHERE "container_id" = p_container_id
+        AND "index" = p_index
+    )
+    THEN
+        RAISE EXCEPTION 'Item already exists in the specified container and index';
+    END IF;
+
     -- Insert a new entity
     INSERT INTO "entities" ("type")
     VALUES ('item')
     RETURNING "id" INTO p_entity_id;
 
-    -- Insert a new item
-    SELECT "add_item"(
-        p_name, p_description, 'equipable', 
-        p_price, 1
-    ) INTO p_item_id;
-
-    -- Insert a new equipable item
-    INSERT INTO "equipable_items" (
-        "item_id", "entity_id", "equipment_type"
+    -- Insert a new armor item
+    INSERT INTO "armor_items" (
+        "name",
+        "class", "entity_id", "tier", "type", 
+        "armor_points", "description", "price"
     )
     VALUES (
-        p_item_id, p_entity_id, p_equipment_type
-    );
+        p_class, p_entity_id, p_tier, p_type,
+        p_armor_points, p_description, p_price
+    )
+    RETURNING "id" INTO p_item_id;
 
-    -- Insert attributes for the item
+    -- Insert a new attribute for the item
     INSERT INTO "attributes" (
-        "id", "str_points", "dex_points", 
+        "entity_id", "str_points", "dex_points", 
         "int_points", "con_points", "lck_points",
         "armor_points"
     )
     VALUES (
         p_entity_id, p_str_points, p_dex_points, 
-        p_int_points, p_con_points, p_lck_points,
-        p_armor_points
+        p_int_points, p_con_points, p_lck_points
+    );
+
+    -- Insert the item into the container
+    INSERT INTO "item_locations" (
+        "item_id", "container_id", "index"
+    )
+    VALUES (
+        p_item_id, p_container_id, p_index
     );
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION "move_item" (
-    p_item_id INT,
+CREATE OR REPLACE FUNCTION "add_accessory_item"(
     p_container_id INT,
-    p_slot_number INT,
-    p_swappable BOOLEAN DEFAULT FALSE
+    p_index INT,
+    p_class "character_class",
+    p_int_points INT,
+    p_str_points INT,
+    p_dex_points INT,
+    p_lck_points INT,
+    p_con_points INT,
+    p_type "item_type",
+    p_tier "item_tier",
+    p_description TEXT,
+    p_price INT
 )
-RETURNS VOID AS $$
+RETURNS INT AS $$
 DECLARE
-    existing_item_id INT;
-    current_container_id INT;
-    current_slot_number INT;
+    p_entity_id INT;
+    p_item_id INT;
 BEGIN
-    -- Check if the slot number is valid
-    IF p_slot_number < 1 OR p_slot_number > (
-            SELECT "capacity" FROM "containers" WHERE "containers"."id" = p_container_id
-        ) 
-    THEN
-        RAISE EXCEPTION 'Invalid slot number: %', p_slot_number;
-    END IF;
-
-    -- Check if any item exists in the target slot
-    SELECT "item_id" INTO existing_item_id
-    FROM "item_locations"
-    WHERE 
-        "container_id" = p_container_id 
-        AND "slot_number" = p_slot_number;
-
-    IF 
-        existing_item_id IS NULL OR existing_item_id = p_item_id
-    THEN
-        -- Update the new location for the item
-        INSERT INTO "item_locations" (
-            "item_id", "container_id", "slot_number"
-        )
-        VALUES (
-            p_item_id, p_container_id, p_slot_number
-        )
-        ON CONFLICT ("item_id")
-        DO UPDATE SET
-            "container_id" = EXCLUDED."container_id",
-            "slot_number" = EXCLUDED."slot_number";
-    ELSIF
-        p_swappable
-        AND EXISTS (
-            SELECT 1 FROM "item_locations" 
-            WHERE 
-                "item_id" = p_item_id
-                AND "container_id" = p_container_id
-        )
-    THEN
-
-        SELECT "slot_number"
-        INTO current_slot_number
+    -- Check if the container slot is already occupied
+    IF (
+        SELECT 1
         FROM "item_locations"
-        WHERE "item_id" = p_item_id;
-
-        -- Remove the item from its current location
-        DELETE FROM "item_locations" 
-        WHERE "item_id" = p_item_id;
-
-        -- Change the location of the existing item
-        UPDATE "item_locations" 
-        SET "slot_number" = current_slot_number
-        WHERE "item_id" = existing_item_id;
-
-        -- Insert the item into the new location
-        INSERT INTO "item_locations" (
-            "item_id", "container_id", "slot_number"
-        )
-        VALUES (
-            p_item_id, p_container_id, p_slot_number
-        );
-    ELSE
-        RAISE EXCEPTION 'Slot % is already occupied by item %', p_slot_number, existing_item_id;
+        WHERE "container_id" = p_container_id
+        AND "index" = p_index
+    )
+    THEN
+        RAISE EXCEPTION 'Item already exists in the specified container and index';
     END IF;
 
+    -- Insert a new entity
+    INSERT INTO "entities" ("type")
+    VALUES ('item')
+    RETURNING "id" INTO p_entity_id;
+
+    -- Insert a new armor item
+    INSERT INTO "accessory_items" (
+        "name",
+        "class", "entity_id", "tier", 
+        "type", "description", "price"
+    )
+    VALUES (
+        p_class, p_entity_id, p_tier, 
+        p_type, p_description, p_price
+    )
+    RETURNING "id" INTO p_item_id;
+
+    -- Insert a new attribute for the item
+    INSERT INTO "attributes" (
+        "entity_id", "str_points", "dex_points", 
+        "int_points", "con_points", "lck_points"
+    )
+    VALUES (
+        p_entity_id, p_str_points, p_dex_points, 
+        p_int_points, p_con_points, p_lck_points
+    );
+
+    -- Insert the item into the container
+    INSERT INTO "item_locations" (
+        "item_id", "container_id", "index"
+    )
+    VALUES (
+        p_item_id, p_container_id, p_index
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION "add_weapon_item"(
+    p_container_id INT,
+    p_index INT,
+    p_class "character_class",
+    p_int_points INT,
+    p_str_points INT,
+    p_dex_points INT,
+    p_lck_points INT,
+    p_con_points INT,
+    p_min_damage INT,
+    p_max_damage INT,
+    p_type "item_type",
+    p_tier "item_tier",
+    p_description TEXT,
+    p_price INT
+)
+RETURNS INT AS $$
+DECLARE
+    p_entity_id INT;
+    p_item_id INT;
+BEGIN
+    -- Check if the container slot is already occupied
+    IF (
+        SELECT 1
+        FROM "item_locations"
+        WHERE "container_id" = p_container_id
+        AND "index" = p_index
+    )
+    THEN
+        RAISE EXCEPTION 'Item already exists in the specified container and index';
+    END IF;
+
+    -- Insert a new entity
+    INSERT INTO "entities" ("type")
+    VALUES ('item')
+    RETURNING "id" INTO p_entity_id;
+
+    -- Insert a new armor item
+    INSERT INTO "weapon_items" (
+        "name",
+        "class", "entity_id", "tier", 
+        "type", "description", "price",
+        "min_damage", "max_damage"
+    )
+    VALUES (
+        p_class, p_entity_id, p_tier, 
+        p_type, p_description, p_price,
+        p_min_damage, p_max_damage
+    )
+    RETURNING "id" INTO p_item_id;
+
+    -- Insert a new attribute for the item
+    INSERT INTO "attributes" (
+        "entity_id", "str_points", "dex_points", 
+        "int_points", "con_points", "lck_points"
+    )
+    VALUES (
+        p_entity_id, p_str_points, p_dex_points, 
+        p_int_points, p_con_points, p_lck_points
+    );
+
+    -- Insert the item into the container
+    INSERT INTO "item_locations" (
+        "item_id", "container_id", "index"
+    )
+    VALUES (
+        p_item_id, p_container_id, p_index
+    );
 END;
 $$ LANGUAGE plpgsql;

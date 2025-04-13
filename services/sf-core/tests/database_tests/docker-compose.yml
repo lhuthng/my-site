@@ -1,0 +1,17 @@
+services:
+  sf-core-database-testing:
+    build: 
+      context: ../..
+      dockerfile: tests/database_tests/dockerfile
+    container_name: sf-core-database-testing
+    environment:
+      - POSTGRES_USER=test_user
+      - POSTGRES_PASSWORD=test_password
+      - POSTGRES_DB=test_db
+      - PGPORT=5432
+    command: >
+      bash -c "
+      docker-entrypoint.sh postgres &
+      sleep 5 &&
+      pg_prove --host=localhost --port=5432 --username=test_user --dbname=test_db /tests/*.sql
+      "
