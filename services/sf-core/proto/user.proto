@@ -1,0 +1,117 @@
+syntax = "proto3";
+
+package sf_user;
+
+service UserService {
+    rpc createUser (CreateUserRequest) returns (CreateUserResponse);
+    // rpc createCharacter (CreateCharacterRequest) returns (CreateCharacterResponse);
+    // rpc deleteCharacter (DeleteCharacterRequest) returns (DeleteCharacterResponse);
+    // rpc getCharacterList (GetCharacterListRequest) returns (GetCharacterListResponse);
+    // rpc selectCharacter (SelectCharacterRequest) returns (SelectCharacterResponse);
+    // rpc getCharacterInfo (GetCharacterInfoRequest) returns (GetCharacterInfoResponse);
+    // rpc getCharacterInventory (GetCharacterInventoryRequest) returns (GetCharacterInventoryResponse);
+    // rpc getCharacterEqupment (GetCharacterEquipmentRequest) returns (GetCharacterEquipmentResponse);
+} 
+
+message CreateUserRequest {
+    string externalId = 1;
+    string username = 2;
+}
+
+message CreateUserResponse {
+    string userId = 1;
+}
+
+// message CreateCharacterRequest {
+//     string userId = 1;
+//     string characterName = 2;
+//     string characterClass = 3;
+// }
+
+// message CreateCharacterResponse {
+//     string characterId = 1;
+// }
+
+// message DeleteCharacterRequest {
+//     string userId = 1;
+//     string characterId = 2;
+// }
+// message DeleteCharacterResponse {
+// }
+
+// message GetCharacterListRequest {
+//     string userId = 1;
+// }
+// message GetCharacterListResponse {
+//     repeated CharacterInfo characters = 1;
+// }
+
+// message SelectCharacterRequest {
+//     string userId = 1;
+//     string characterId = 2;
+// }
+// message SelectCharacterResponse {
+//     string characterId = 1;
+//     string characterName = 2;
+//     string characterClass = 3;
+// }
+
+// message GetCharacterInfoRequest {
+//     string characterId = 1;
+// }
+
+// message GetCharacterInfoResponse {
+//     CharacterInfo characterInfo = 1;
+//     CharacterResources resources = 2;
+//     Stats stats = 3;
+// }
+
+// message CharacterInfo {
+//     string characterId = 1;
+//     string characterName = 2;
+//     string characterClass = 3;
+//     int32 characterLevel = 4;
+//     string characterExperience = 5;
+// }
+
+// message CharacterResources {
+//     int32 gold = 1;
+//     int32 mushrooms = 2;
+// }
+
+// message Stats {
+//     int32 strength = 1;
+//     int32 dexterity = 2;
+//     int32 intelligence = 3;
+//     int32 constitution = 4;
+//     int32 luck = 5;
+//     int32 armor = 6;
+// }
+
+// message GetCharacterInventoryRequest {
+//     string characterId = 1;
+// }
+
+// message GetCharacterInventoryResponse {
+//     repeated ItemInfo items = 1;
+// }
+
+// message ItemInfo {
+//     string itemId = 1;
+//     string itemName = 2;
+//     string itemType = 3;
+//     string itemDescription = 4;
+//     string itemPrice = 5;
+//     string itemQuantity = 6;
+    
+// }
+
+// message GetCharacterEquipmentRequest {
+//     string userId = 1;
+// }
+
+// message GetCharacterEquipmentResponse {
+//     string userId = 1;
+//     repeated ItemInfo equipment = 2;
+//     repeated Stats stats = 3;
+// }

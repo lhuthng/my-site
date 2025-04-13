@@ -2,10 +2,14 @@
 name = "sf-core"
 version = "0.1.0"
 edition = "2021"
+build = "build.rs"
 
 [dependencies]
 sqlx = { version = "0.8.3", features = ["postgres", "runtime-tokio"] }
-tokio = { version = "1.44.1", features = ["full"] }
-dotenvy = { version = "0.15", features = ["dotenvy"] }
-tonic = { version = "0.13.0", features = ["full"] }
+tokio = { version = "1.44.2", features = ["full", "rt-multi-thread"] }
+dotenvy = "0.15.7"
+tonic = "0.13.0"
 prost = { version = "0.13.5", features = ["derive"] }
+
+[build-dependencies]
+tonic-build = "0.13.0"

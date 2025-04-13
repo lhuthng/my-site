@@ -5,10 +5,10 @@ services:
     env_file:
       - .env
     environment:
-      - POSTGRES_USER=${POSTGRESQL_USERNAME}
-      - POSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}
-      - POSTGRES_DB=${POSTGRESQL_DB}
-      - PGPORT=${POSTGRESQL_PORT}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB}
+      - PGPORT=${DB_PORT}
     volumes:
       - sf_core_data:/data/sf_core_db/
     networks:
@@ -22,14 +22,6 @@ services:
       - "5000:5000"
     env_file:
       - .env
-    environment:
-      - POSTGRESQL_USERNAME
-      - POSTGRESQL_PASSWORD
-      - POSTGRESQL_DB
-      - POSTGRESQL_HOST
-      - POSTGRESQL_PORT
-      - PORT
-      - DATABASE_URL=postgres://${POSTGRESQL_USERNAME}:${POSTGRESQL_PASSWORD}@${POSTGRESQL_HOST}:${POSTGRESQL_PORT}/${POSTGRESQL_DB}
     networks:
       - sfnet
 volumes:

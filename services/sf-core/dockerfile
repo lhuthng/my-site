@@ -11,6 +11,8 @@ RUN cargo clean
 
 # FINAL BUILD
 COPY ./src ./src
+COPY build.rs ./
+COPY proto ./proto
 RUN mkdir -p migrations
 
 RUN cargo build --release
