@@ -2,6 +2,7 @@ use std::env;
 use dotenvy::dotenv;
 
 mod db;
+mod models;
 mod server;
 mod services;
 mod proto;
@@ -23,20 +24,21 @@ async fn main() {
         db_username, db_password, db_host, db_port, db_database
     );
 
-    // match db::Connect(&db_url).await {
-    //     Ok(_) => {
-    //         println!("Connected to the database and migrations applied!");
-    //     }
-    //     Err(e) => {
-    //         eprintln!("Failed to connect to the database: {}", e);
-    //         return;
-    //     }
-    // }
+    let pool = match db::Connect(&db_url).await {
+        Ok(pool) => {
+            println!("Connected to the database and migrations applied!");
+            pool
+        }
+        Err(e) => {
+            eprintln!("Failed to connect to the database: {}", e);
+            return;
+        }
+    };
 
     let service_url = format!("{}:{}", service_host, service_port);
     println!("Starting gRPC server on {}", service_url);
 
-    if let Err(e) = server::start().await {
+    if let Err(e) = server::start(&pool).await {
         eprintln!("Failed to start the gRPC server: {}", e);
     }
 }

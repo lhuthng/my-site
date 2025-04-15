@@ -4,7 +4,7 @@ package sf_user;
 
 service UserService {
     rpc createUser (CreateUserRequest) returns (CreateUserResponse);
-    // rpc createCharacter (CreateCharacterRequest) returns (CreateCharacterResponse);
+    rpc createCharacter (CreateCharacterRequest) returns (CreateCharacterResponse);
     // rpc deleteCharacter (DeleteCharacterRequest) returns (DeleteCharacterResponse);
     // rpc getCharacterList (GetCharacterListRequest) returns (GetCharacterListResponse);
     // rpc selectCharacter (SelectCharacterRequest) returns (SelectCharacterResponse);
@@ -19,18 +19,18 @@ message CreateUserRequest {
 }
 
 message CreateUserResponse {
-    string userId = 1;
+    int32 userId = 1;
 }
 
-// message CreateCharacterRequest {
-//     string userId = 1;
-//     string characterName = 2;
-//     string characterClass = 3;
-// }
+message CreateCharacterRequest {
+    int32 userId = 1;
+    string name = 2;
+    string job = 3;
+}
 
-// message CreateCharacterResponse {
-//     string characterId = 1;
-// }
+message CreateCharacterResponse {
+    string characterId = 1;
+}
 
 // message DeleteCharacterRequest {
 //     string userId = 1;

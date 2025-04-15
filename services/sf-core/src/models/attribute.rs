@@ -1,10 +1,7 @@
-use crate::schema::attributes;
-
 use sqlx::FromRow
 
-#[derive(FromRow)]
+#[derive(Debug, FromRow)]
 pub struct Attribute {
-    pub id: i32,
     pub entity_id: i32,
     pub int_points: i32,
     pub str_points: i32,

@@ -1,12 +1,10 @@
-use crate::schema::users;
-
 use sqlx::FromRow;
-use chrono::{DateTime, Utc};
+use chrono::NaiveDateTime;
 
-#[derive(FromRow)]
+#[derive(Debug, FromRow)]
 pub struct User {
     pub id: i32,
     pub external_id: String,
-    pub last_update: DateTime<Utc>,
     pub username: String,
+    pub last_update: NaiveDateTime,
 }
