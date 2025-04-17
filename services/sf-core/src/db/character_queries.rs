@@ -20,6 +20,10 @@ async fn create_simple_character(
     level: i32,
     exp: i32,
 ) -> Result<Uuid, sqlx::Error> {
+
+    #[cfg(debug_assertions)]
+    println!("Adding a character.");
+
     let character_id: Uuid = sqlx::query_scalar!(
         r#"
         INSERT INTO characters (user_id, entity_id, job, name, level, exp)
@@ -59,6 +63,9 @@ pub async fn create_character(
         exp,
     ).await?;
 
+    #[cfg(debug_assertions)]
+    println!("Adding resources.");
+
     sqlx::query!(
         r#"
         INSERT INTO resources (character_id, kind, amount)
@@ -70,11 +77,12 @@ pub async fn create_character(
         ResourceType::Gold as _, 0,
         ResourceType::Mushroom as _, 0,
     )
-    .fetch_one(&mut **tx)
+    .execute(&mut **tx)
     .await?;
 
     container_queries::create_container(tx, character_id, ContainerType::Inventory, 5).await?;
-    container_queries::create_container(tx, character_id, ContainerType::Shop, 6).await?;
+    container_queries::create_container(tx, character_id, ContainerType::WeaponShop, 6).await?;
+    container_queries::create_container(tx, character_id, ContainerType::MagicShop, 6).await?;
 
     Ok(character_id)
 }

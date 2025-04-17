@@ -1,9 +1,3 @@
--- Drop functions
-DROP FUNCTION IF EXISTS "add_weapon_item";
-DROP FUNCTION IF EXISTS "add_accessory_item";
-DROP FUNCTION IF EXISTS "add_armor_item";
-DROP FUNCTION IF EXISTS "add_character";
-DROP FUNCTION IF EXISTS "add_user";
 
 -- Drop tables in reverse order of creation
 DROP TABLE IF EXISTS "item_locations";

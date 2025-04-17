@@ -15,7 +15,7 @@ CREATE TYPE "resource_type" AS ENUM (
     'gold', 'mushroom'
 );
 CREATE TYPE "container_type" AS ENUM (
-    'inventory', 'shop'
+    'inventory', 'weapon_shop', 'magic_shop'
 );
 -- Create tables
 CREATE TABLE "users" (

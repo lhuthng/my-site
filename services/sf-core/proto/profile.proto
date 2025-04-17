@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package sf_user;
 
-service UserService {
+service ProfileService {
     rpc createUser (CreateUserRequest) returns (CreateUserResponse);
     rpc createCharacter (CreateCharacterRequest) returns (CreateCharacterResponse);
     // rpc deleteCharacter (DeleteCharacterRequest) returns (DeleteCharacterResponse);

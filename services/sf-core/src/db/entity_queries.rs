@@ -5,13 +5,17 @@ pub async fn create_entity(
     tx: &mut Transaction<'_, Postgres>,
     kind: EntityType,
 ) -> Result<i32, sqlx::Error> {
+
+    #[cfg(debug_assertions)]
+    println!("Adding an entity.");
+
     let entity_id: i32 = sqlx::query_scalar!(
         r#"
         INSERT INTO entities (kind)
         VALUES ($1)
         RETURNING id
         "#,
-        kind as i32,
+        kind as _,
     )
     .fetch_one(&mut **tx)
     .await?;
@@ -28,6 +32,10 @@ pub async fn attach_attribute(
     con_points: i32,
     lck_points: i32,
 ) -> Result<(), sqlx::Error> {
+
+    #[cfg(debug_assertions)]
+    println!("Adding an attribute.");
+
     sqlx::query!(
         r#"
         INSERT INTO attributes (entity_id, int_points, str_points, dex_points, con_points, lck_points)
@@ -40,7 +48,7 @@ pub async fn attach_attribute(
         con_points,
         lck_points,
     )
-    .fetch_one(&mut **tx)
+    .execute(&mut **tx)
     .await?;
 
     Ok(())

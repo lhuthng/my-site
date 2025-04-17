@@ -10,6 +10,10 @@ pub async fn create_container(
     kind: ContainerType,
     capacity: i32,
 ) -> Result<i32, sqlx::Error> {
+
+    #[cfg(debug_assertions)]
+    println!("Adding a container.");
+
     let container_id: i32 = sqlx::query_scalar!(
         r#"
         INSERT INTO containers (character_id, kind, capacity)

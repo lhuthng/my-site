@@ -3,8 +3,8 @@ use serde::{Serialize, Deserialize};
 use uuid::Uuid;
 use strum_macros::EnumString;
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type, EnumString)]
-#[strum(serialize_all = "snake_case")]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Type, EnumString)]
+#[strum(serialize_all = "PascalCase")]
 #[sqlx(type_name = "character_class", rename_all = "snake_case")]
 pub enum CharacterClass {
     Warrior,
@@ -12,8 +12,8 @@ pub enum CharacterClass {
     Archer,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type, EnumString)]
-#[strum(serialize_all = "snake_case")]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Type, EnumString)]
+#[strum(serialize_all = "PascalCase")]
 #[sqlx(type_name = "resource_type", rename_all = "snake_case")]
 pub enum ResourceType {
     Gold,

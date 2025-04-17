@@ -24,7 +24,7 @@ async fn main() {
         db_username, db_password, db_host, db_port, db_database
     );
 
-    let pool = match db::Connect(&db_url).await {
+    let pool = match db::connect(&db_url).await {
         Ok(pool) => {
             println!("Connected to the database and migrations applied!");
             pool
