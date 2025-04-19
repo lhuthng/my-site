@@ -1,0 +1,11 @@
+DROP TABLE IF EXISTS "equipped_items";
+DROP TABLE IF EXISTS "potions";
+DROP TABLE IF EXISTS "accessory_items";
+DROP TABLE IF EXISTS "shield_items";
+DROP TABLE IF EXISTS "weapon_items";
+DROP TABLE IF EXISTS "armor_items";
+DROP TABLE IF EXISTS "equipable_items";
+DROP TABLE IF EXISTS "items";
+DROP TABLE IF EXISTS "preset_items";
+DROP TABLE IF EXISTS "item_tiers";
+DROP TABLE IF EXISTS "item_categories";

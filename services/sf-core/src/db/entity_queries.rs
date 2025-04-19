@@ -23,14 +23,14 @@ pub async fn create_entity(
     Ok(entity_id)
 }
 
-pub async fn attach_attribute(
+pub async fn attach_attributes(
     tx: &mut Transaction<'_, Postgres>,
     entity_id: i32,
-    int_points: i32,
-    str_points: i32,
-    dex_points: i32,
-    con_points: i32,
-    lck_points: i32,
+    int: i32,
+    str_: i32,
+    dex: i32,
+    con: i32,
+    lck: i32,
 ) -> Result<(), sqlx::Error> {
 
     #[cfg(debug_assertions)]
@@ -38,15 +38,15 @@ pub async fn attach_attribute(
 
     sqlx::query!(
         r#"
-        INSERT INTO attributes (entity_id, int_points, str_points, dex_points, con_points, lck_points)
+        INSERT INTO attributes (entity_id, int, str, dex, con, lck)
         VALUES ($1, $2, $3, $4, $5, $6)
         "#,
         entity_id,
-        int_points,
-        str_points,
-        dex_points,
-        con_points,
-        lck_points,
+        int,
+        str_,
+        dex,
+        con,
+        lck,
     )
     .execute(&mut **tx)
     .await?;

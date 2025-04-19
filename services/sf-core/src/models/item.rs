@@ -1,41 +1,20 @@
-use sqlx::{Type, FromRow};
-use serde::{Serialize, Deserialize};
-use crate::models::character::CharacterClass;
+use sqlx::FromRow;
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type)]
-#[sqlx(type_name = "item_type", rename_all = "snake_case")]
-pub enum ItemType {
-    Helmet,
-    Chest,
-    Gloves,
-    Boots,
-    Necklace,
-    Belt,
-    Ring,
-    Amulet,
-    Shield,
-    Weapon,
-    Potion,
-    SubWeapon,
-}
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type)]
-#[sqlx(type_name = "item_tier", rename_all = "snake_case")]
-pub enum ItemTier {
-    Common,
-    Uncommon,
-    Rare,
-    Epic,
-    Legendary,
+#[derive(Debug, FromRow)]
+pub struct PresetItem {
+    pub id: i16,
+    pub name: String,
+    pub description: String,
+    pub item_category_id: i32,
+    pub item_tier_id: i32,
 }
 
 #[derive(Debug, FromRow)]
 pub struct Item {
     pub id: i32,
-    pub name: String,
-    pub kind: ItemType,
-    pub tier: ItemTier,
-    pub description: String,
+    pub preset_item_id: i16,
+    pub overridden_item_tier_id: Option<i16>,
     pub price: i32,
 }
 
@@ -43,7 +22,7 @@ pub struct Item {
 pub struct EquippableItem {
     pub item_id: i32,
     pub entity_id: i32,
-    pub job: CharacterClass,
+    pub job_id: i16,
 }
 
 #[derive(Debug, FromRow)]

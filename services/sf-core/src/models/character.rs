@@ -1,39 +1,35 @@
-use sqlx::{Type, FromRow};
-use serde::{Serialize, Deserialize};
+use sqlx::FromRow;
 use uuid::Uuid;
-use strum_macros::EnumString;
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, Type, EnumString)]
-#[strum(serialize_all = "PascalCase")]
-#[sqlx(type_name = "character_class", rename_all = "snake_case")]
-pub enum CharacterClass {
-    Warrior,
-    Mage,
-    Archer,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, Type, EnumString)]
-#[strum(serialize_all = "PascalCase")]
-#[sqlx(type_name = "resource_type", rename_all = "snake_case")]
-pub enum ResourceType {
-    Gold,
-    Mushroom,
-}
 
 #[derive(Debug, FromRow)]
 pub struct Character {
     pub id: Uuid,
     pub user_id: i32,
     pub entity_id: i32,
-    pub class: CharacterClass,
+    pub job_id: i16,
     pub name: String,
-    pub level: i32,
+    pub level: i16,
     pub exp: i32,
 }
 
 #[derive(Debug, FromRow)]
-pub struct Resource {
+pub struct CharacterResource {
     pub character_id: i32,
-    pub kind: ResourceType,
+    pub resource_id: i16,
     pub amount: i32,
+}
+
+#[derive(Debug, FromRow, Default)]
+pub struct Appearance {
+    pub character_id: i32,
+    pub race_id: i16,
+    pub gender_id: i16,
+    pub hair: i16,
+    pub hair_color: i16,
+    pub beard: i16,
+    pub mouth: i16,
+    pub eyebrows: i16,
+    pub nose: i16,
+    pub ears: i16,
+    pub extra: i16,
 }

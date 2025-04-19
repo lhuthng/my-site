@@ -1,7 +1,7 @@
 use tonic::transport::Server;
 use sqlx::PgPool;
 use crate::services::profile_service::ProfileServiceImpl;
-use crate::proto::sf_user::profile_service_server::ProfileServiceServer;
+use crate::proto::sf_core::profile_service_server::ProfileServiceServer;
 
 pub async fn start(
     pool: &PgPool,

@@ -1,0 +1,11 @@
+DROP TABLE IF EXISTS "appearances";
+DROP TABLE IF EXISTS "character_resources";
+DROP TABLE IF EXISTS "characters";
+DROP TABLE IF EXISTS "attributes";
+DROP TABLE IF EXISTS "entities";
+DROP TABLE IF EXISTS "users";
+DROP TABLE IF EXISTS "genders";
+DROP TABLE IF EXISTS "races";
+DROP TABLE IF EXISTS "resources";
+DROP TABLE IF EXISTS "jobs";
+DROP TYPE IF EXISTS "entity_type";

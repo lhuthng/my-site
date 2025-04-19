@@ -1,10 +1,12 @@
 syntax = "proto3";
 
-package sf_user;
+package sf_profile;
 
 service ProfileService {
     rpc createUser (CreateUserRequest) returns (CreateUserResponse);
     rpc createCharacter (CreateCharacterRequest) returns (CreateCharacterResponse);
+    rpc getRaces (Empty) returns (GetRacesResponse);
+    rpc getGenders (Empty) returns (GetGendersResponse);
     // rpc deleteCharacter (DeleteCharacterRequest) returns (DeleteCharacterResponse);
     // rpc getCharacterList (GetCharacterListRequest) returns (GetCharacterListResponse);
     // rpc selectCharacter (SelectCharacterRequest) returns (SelectCharacterResponse);
@@ -12,6 +14,8 @@ service ProfileService {
     // rpc getCharacterInventory (GetCharacterInventoryRequest) returns (GetCharacterInventoryResponse);
     // rpc getCharacterEqupment (GetCharacterEquipmentRequest) returns (GetCharacterEquipmentResponse);
 } 
+
+message Empty {}
 
 message CreateUserRequest {
     string externalId = 1;
@@ -22,14 +26,41 @@ message CreateUserResponse {
     int32 userId = 1;
 }
 
+message Appearance {
+    int32 raceId = 1;
+    int32 genderId = 2;
+    int32 hair = 3;
+    int32 hair_color = 4;
+    int32 beard = 5;
+    int32 mouth = 6;
+    int32 eyebrows = 7;
+    int32 nose = 8;
+    int32 ears = 9;
+    int32 extra = 10;
+}
+
 message CreateCharacterRequest {
     int32 userId = 1;
     string name = 2;
-    string job = 3;
+    int32 jobId = 3;
+    Appearance appearance = 4;
 }
 
 message CreateCharacterResponse {
     string characterId = 1;
+}
+
+message LookUpValue {
+    int32 id = 1;
+    string name = 2;
+}
+
+message GetRacesResponse {
+    repeated LookUpValue races = 1;
+}
+
+message GetGendersResponse {
+    repeated LookUpValue genders = 1;
 }
 
 // message DeleteCharacterRequest {

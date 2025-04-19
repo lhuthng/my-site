@@ -1,3 +1,3 @@
-pub mod sf_user {
-    tonic::include_proto!("sf_user");
+pub mod sf_core {
+    tonic::include_proto!("sf_profile");
 }

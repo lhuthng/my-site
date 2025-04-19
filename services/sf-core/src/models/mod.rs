@@ -1,3 +1,5 @@
+use sqlx::FromRow;
+
 pub mod user;
 pub use user::{
     User
@@ -6,9 +8,7 @@ pub use user::{
 pub mod character;
 pub use character::{
     Character,
-    CharacterClass,
-    Resource,
-    ResourceType,
+    Appearance,
 };
 
 pub mod entity;
@@ -27,8 +27,6 @@ pub use container::{
 pub mod item;
 pub use item::{
     Item,
-    ItemType,
-    ItemTier,
     EquippableItem,
     Potion,
     ArmorItem,
@@ -36,3 +34,9 @@ pub use item::{
     ShieldItem,
     AccessoryItem,
 };
+
+#[derive(Debug, FromRow)]
+pub struct LookUpValue {
+    pub id: i16,
+    pub name: String,
+}
