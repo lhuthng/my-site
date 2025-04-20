@@ -1,5 +1,6 @@
 use std::env;
 use dotenvy::dotenv;
+use tonic::Status;
 
 mod db;
 mod models;
@@ -26,7 +27,29 @@ async fn main() {
 
     let pool = match db::connect(&db_url).await {
         Ok(pool) => {
-            println!("Connected to the database and migrations applied!");
+            let mut tx = match pool.begin().await {
+                Ok(tx) => {
+                    println!("Transaction Made");
+                    tx
+                }
+                Err(e) => {
+                    eprintln!("Failed to connect to the database: {}", e);
+                    return;
+                }
+            };
+            println!("Trying to verify");
+            match db::maintain_presets::verify_preset_items(&mut tx).await {
+                Ok(_) => { println!("OK"); }
+                Err(e) => { eprintln!("Failed {}", e); }
+            };
+            match tx.commit().await {
+                Ok(_) => { 
+                    println!("Commited.");
+                }
+                Err(e) => {
+                    eprintln!("Failed to connect to the database: {}", e);
+                }
+            };
             pool
         }
         Err(e) => {

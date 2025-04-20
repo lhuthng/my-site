@@ -20,7 +20,7 @@ pub async fn create_item(
 ) -> Result<i32, sqlx::Error> {
 
     #[cfg(debug_assertions)]
-    println!("Adding an item")
+    println!("Adding an item");
 
     let item_id: i32 = sqlx::query_scalar!(
         r#"
