@@ -1,5 +1,5 @@
 CREATE TYPE "container_type" AS ENUM (
-    'inventory', 'weapon_shop', 'magic_shop'
+    'inventory', 'gear_shop', 'magic_shop'
 );
 
 CREATE TABLE "containers" (
@@ -7,6 +7,11 @@ CREATE TABLE "containers" (
     "character_id" UUID REFERENCES "characters"("id") ON DELETE CASCADE,
     "kind" "container_type" NOT NULL,
     "capacity" INT DEFAULT 1
+);
+
+CREATE TABLE "shops" (
+    "container_id" INT REFERENCES "containers"("id") ON DELETE CASCADE,
+    "last_refresh" DATE
 );
 
 CREATE TABLE "item_locations" (

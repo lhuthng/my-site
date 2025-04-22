@@ -22,7 +22,6 @@ pub struct Item {
 pub struct EquippableItem {
     pub item_id: i32,
     pub entity_id: i32,
-    pub job_id: i16,
 }
 
 #[derive(Debug, FromRow)]

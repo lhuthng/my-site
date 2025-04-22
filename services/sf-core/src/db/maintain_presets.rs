@@ -15,6 +15,7 @@ struct Preset {
     pub name: String,
     pub tier: String,
     pub category: String,
+    pub sub_category: String,
     pub description: String,
 }
 use std::collections::HashMap;
@@ -30,9 +31,15 @@ pub async fn verify_preset_items(
 
     let db_presets: Vec<Preset> = sqlx::query_as::<_, Preset>(
         r#"
-        SELECT pre.name AS name, tier.name AS tier, cat.name AS category, pre.description AS description
+        SELECT 
+            pre.name AS name, 
+            tier.name AS tier, 
+            cat.name AS category, 
+            sub_cat.name AS sub_category,
+            pre.description AS description
         FROM preset_items AS pre
         JOIN item_categories AS cat ON pre.item_category_id = cat.id
+        JOIN item_sub_categories AS sub_cat ON pre.item_sub_category_id = sub_cat.id
         JOIN item_tiers AS tier ON pre.item_tier_id = tier.id
         "#
     )
@@ -83,16 +90,18 @@ pub async fn verify_preset_items(
     for preset in only_in_csv {
         sqlx::query!(
             r#"
-            INSERT INTO preset_items (name, description, item_category_id, item_tier_id)
+            INSERT INTO preset_items (name, description, item_category_id, item_sub_category_id, item_tier_id)
             VALUES (
                 $1, $2,
                 (SELECT id FROM item_categories WHERE name = $3),
-                (SELECT id FROM item_tiers WHERE name = $4)
+                (SELECT id FROM item_sub_categories WHERE name = $4),
+                (SELECT id FROM item_tiers WHERE name = $5)
             )
             "#,
             preset.name,
             preset.description,
             preset.category,
+            preset.sub_category,
             preset.tier,
         )
         .execute(&mut **tx)

@@ -7,7 +7,7 @@ pub async fn create_user(
 ) -> Result<i32, sqlx::Error> {
 
     #[cfg(debug_assertions)]
-    println!("Adding a container.");
+    println!("Adding a user.");
     
     let user_id: i32 = sqlx::query_scalar!(
         r#"

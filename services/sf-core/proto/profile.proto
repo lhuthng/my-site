@@ -7,6 +7,7 @@ service ProfileService {
     rpc createCharacter (CreateCharacterRequest) returns (CreateCharacterResponse);
     rpc getRaces (Empty) returns (GetRacesResponse);
     rpc getGenders (Empty) returns (GetGendersResponse);
+    // rpc getGearShop (GetGearShopRequest) returns (GetContainerResponse);
     // rpc deleteCharacter (DeleteCharacterRequest) returns (DeleteCharacterResponse);
     // rpc getCharacterList (GetCharacterListRequest) returns (GetCharacterListResponse);
     // rpc selectCharacter (SelectCharacterRequest) returns (SelectCharacterResponse);
@@ -61,6 +62,76 @@ message GetRacesResponse {
 
 message GetGendersResponse {
     repeated LookUpValue genders = 1;
+}
+
+message GetGearShopRequest {
+    string characterId = 1;
+}
+
+message Attributes {
+    int32 str = 1;
+    int32 dex = 2;
+    int32 int = 3;
+    int32 con = 4;
+    int32 luk = 5;
+}
+
+message Accessory {
+    Attributes attributes = 1;
+}
+
+message Armor {
+    Attributes attributes = 1;
+    int32 armor_points = 2;
+}
+
+message Weapon {
+    Attributes attributes = 1;
+    int32 min_dmg = 2;
+    int32 max_dmg = 3;
+}
+
+message Shield {
+    Attributes Attributes = 1;
+    int32 block_points = 3;
+}
+
+message Equipment {
+    oneof details {
+        Accessory accessory = 1;
+        Armor armor = 2;
+        Weapon weapon = 3;
+        Shield shield = 4;
+    }
+}
+
+message AttributePotion {
+    int32 attr_id = 1;
+    int32 value = 2;
+}
+
+message HPPotion {
+    int32 value = 1;
+}
+
+message Potion {
+    oneof details {
+        AttributePotion attr_potion = 1;
+        HPPotion hp_potion = 2;
+    }
+}
+
+message Slot {
+    int32 index = 1;
+    int32 item_id = 2;
+    oneof item {
+        Equipment equipment = 3;
+        Potion potion = 4;
+    }
+}
+
+message GetContainerResponse {
+    repeated Slot slots = 1;
 }
 
 // message DeleteCharacterRequest {

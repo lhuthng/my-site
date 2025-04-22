@@ -8,6 +8,7 @@ use crate::models::{
 use uuid::Uuid;
 use crate::db::{
     entity_queries,
+    container_queries,
 };
 
 async fn create_simple_character(
@@ -103,18 +104,9 @@ pub async fn attach_containers(
     character_id: &Uuid,
 ) -> Result<(), sqlx::Error> {
 
-    sqlx::query!(
-        r#"
-        INSERT INTO containers (character_id, kind, capacity)
-        VALUES ($1, $2, $3), ($1, $4, $5), ($1, $6, $7)
-        "#,
-        character_id,
-        ContainerType::Inventory as _, 5,
-        ContainerType::WeaponShop as _, 6,
-        ContainerType::MagicShop as _, 6,
-    )
-    .execute(&mut **tx)
-    .await?;
+    container_queries::create_container(tx, character_id, ContainerType::Inventory, 5).await?;
+    container_queries::create_container(tx, character_id, ContainerType::MagicShop, 6).await?;
+    container_queries::create_container(tx, character_id, ContainerType::GearShop, 6).await?;
 
     Ok(())
 }

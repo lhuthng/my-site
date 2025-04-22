@@ -19,14 +19,14 @@ VALUES ('gold'), ('mushroom');
 
 CREATE TABLE "races" (
     "id" SMALLSERIAL PRIMARY KEY,
-    "name" VARCHAR(20)
+    "name" VARCHAR(20) UNIQUE
 );
 INSERT INTO "races" ("name")
 VALUES ('human'), ('elf'), ('drawf'), ('gnome'), ('orc'), ('dark_elf'), ('goblin'), ('demon');
 
 CREATE TABLE "genders" (
     "id" SMALLSERIAL PRIMARY KEY,
-    "name" VARCHAR(20)
+    "name" VARCHAR(20) UNIQUE
 );
 INSERT INTO "genders" ("name")
 VALUES ('male'), ('female');

@@ -120,3 +120,13 @@ pub async fn create_armor_item(
 
     Ok(item_id)
 }
+
+pub async fn get_item_as_armor_item(
+    tx: &mut Transaction<'_, Postgres>,
+    item_id: i32,
+)
+
+pub async fn generate_item(
+    tx: &mut Transaction<'_, Postgres>,
+    
+)

@@ -8,4 +8,6 @@ DROP TABLE IF EXISTS "equipable_items";
 DROP TABLE IF EXISTS "items";
 DROP TABLE IF EXISTS "preset_items";
 DROP TABLE IF EXISTS "item_tiers";
+DROP TABLE IF EXISTS "item_groups";
+DROP TABLE IF EXISTS "item_sub_categories";
 DROP TABLE IF EXISTS "item_categories";

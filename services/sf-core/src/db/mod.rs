@@ -6,6 +6,7 @@ use crate::proto::sf_core::LookUpValue as LookUpValueGRPC;
 pub mod user_queries;
 pub mod character_queries;
 pub mod entity_queries;
+pub mod container_queries;
 pub mod maintain_presets;
 
 pub async fn connect(uri: &str) -> Result<PgPool, Error> {

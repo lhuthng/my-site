@@ -8,7 +8,7 @@ use uuid::Uuid;
 #[sqlx(type_name = "container_type", rename_all = "snake_case")]
 pub enum ContainerType {
     Inventory,
-    WeaponShop,
+    GearShop,
     MagicShop
 }
 
