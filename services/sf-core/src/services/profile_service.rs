@@ -10,7 +10,7 @@ use sqlx::{PgPool, Transaction};
 use crate::db::{
     user_queries,
     character_queries,
-    get_look_up_values,
+    look_up_table_queries,
 };
 use crate::models::{
     LookUpValue as LookUpValueModel,
@@ -106,16 +106,9 @@ impl ProfileService for ProfileServiceImpl {
         &self,
         request: Request<Empty>,
     ) -> Result<Response<GetRacesResponse>, Status> {
-        let mut tx: Transaction<'_, sqlx::Postgres> = self.pool.begin().await.map_err(|e| {
-            Status::internal(format!("Transaction error: {}", e))
-        })?;
-        
-        let values: Vec<LookUpValueModel> = get_look_up_values(&mut tx, "races").await.map_err(|e| {
+                
+        let values: Vec<LookUpValueModel> = look_up_table_queries::get_all_look_up_values(&self.pool, "races").await.map_err(|e| {
             Status::internal(format!("Getting all races error: {}", e))
-        })?;
-
-        tx.commit().await.map_err(|e| {
-            Status::internal(format!("Transaction commiting error: {}", e))
         })?;
 
         let reply = GetRacesResponse {
@@ -129,16 +122,9 @@ impl ProfileService for ProfileServiceImpl {
         &self,
         request: Request<Empty>,
     ) -> Result<Response<GetGendersResponse>, Status> {
-        let mut tx: Transaction<'_, sqlx::Postgres> = self.pool.begin().await.map_err(|e| {
-            Status::internal(format!("Transaction error: {}", e))
-        })?;
         
-        let values: Vec<LookUpValueModel> = get_look_up_values(&mut tx, "genders").await.map_err(|e| {
+        let values: Vec<LookUpValueModel> = look_up_table_queries::get_all_look_up_values(&self.pool, "genders").await.map_err(|e| {
             Status::internal(format!("Getting all genders error: {}", e))
-        })?;
-
-        tx.commit().await.map_err(|e| {
-            Status::internal(format!("Transaction commiting error: {}", e))
         })?;
 
         let reply = GetGendersResponse {

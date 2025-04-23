@@ -7,6 +7,7 @@ mod models;
 mod server;
 mod services;
 mod proto;
+mod misc;
 
 #[tokio::main]
 async fn main() {
@@ -27,28 +28,14 @@ async fn main() {
 
     let pool = match db::connect(&db_url).await {
         Ok(pool) => {
-            let mut tx = match pool.begin().await {
-                Ok(tx) => {
-                    println!("Transaction Made");
-                    tx
-                }
-                Err(e) => {
-                    eprintln!("Failed to connect to the database: {}", e);
-                    return;
-                }
-            };
             println!("Trying to verify");
-            match db::maintain_presets::verify_preset_items(&mut tx).await {
-                Ok(_) => { println!("OK"); }
+            match db::maintain_presets::verify_preset_items(&pool).await {
+                Ok(_) => { println!("Verified"); }
                 Err(e) => { eprintln!("Failed {}", e); }
             };
-            match tx.commit().await {
-                Ok(_) => { 
-                    println!("Commited.");
-                }
-                Err(e) => {
-                    eprintln!("Failed to connect to the database: {}", e);
-                }
+            match db::look_up_table_queries::initialize(&pool).await {
+                Ok(_) => { println!("Initialized"); }
+                Err(e) => { eprintln!("Failed {}", e); }
             };
             pool
         }

@@ -1,4 +1,5 @@
 use sqlx::{
+    PgPool,
     Transaction,
     Postgres,
     FromRow,
@@ -21,13 +22,15 @@ struct Preset {
 use std::collections::HashMap;
 
 pub async fn verify_preset_items(
-    tx: &mut Transaction<'_, Postgres>
+    pool: &PgPool
 ) -> Result<(), Status> {
-
-    println!("hello?");
 
     #[cfg(debug_assertions)]
     println!("Verifying preset items");
+
+    let mut tx: Transaction<'_, Postgres> = pool.begin().await.map_err(|e| {
+        Status::internal(format!("DB error: {}", e))
+    })?;
 
     let db_presets: Vec<Preset> = sqlx::query_as::<_, Preset>(
         r#"
@@ -43,7 +46,7 @@ pub async fn verify_preset_items(
         JOIN item_tiers AS tier ON pre.item_tier_id = tier.id
         "#
     )
-    .fetch_all(&mut **tx)
+    .fetch_all(&mut *tx)
     .await.map_err(|e| {
         Status::internal(format!("DB error: {}", e))
     })?;
@@ -104,7 +107,7 @@ pub async fn verify_preset_items(
             preset.sub_category,
             preset.tier,
         )
-        .execute(&mut **tx)
+        .execute(&mut *tx)
         .await.map_err(|e| {
             Status::internal(format!("DB error: {}", e))
         })?;

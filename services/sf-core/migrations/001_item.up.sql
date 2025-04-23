@@ -17,10 +17,10 @@ VALUES ('clothing'), ('light'), ('medium'), ('heavy'),
 ('shield'), ('dagger'), ('hp_potion');
 
 CREATE TABLE "item_groups" (
-    "name" VARCHAR(20) NOT NULL,
-    "item_category_id" SMALLINT REFERENCES "item_categories" ("id")
+    "id" SMALLINT REFERENCES "item_categories" ("id"),
+    "name" VARCHAR(20) NOT NULL
 );
-INSERT INTO "item_groups" ("item_category_id", "name")
+INSERT INTO "item_groups" ("id", "name")
 SELECT 
     "id",
     CASE
