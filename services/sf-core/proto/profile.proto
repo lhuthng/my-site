@@ -7,7 +7,7 @@ service ProfileService {
     rpc createCharacter (CreateCharacterRequest) returns (CreateCharacterResponse);
     rpc getRaces (Empty) returns (GetRacesResponse);
     rpc getGenders (Empty) returns (GetGendersResponse);
-    // rpc getGearShop (GetGearShopRequest) returns (GetContainerResponse);
+    rpc getGearShop (GetGearShopRequest) returns (GetContainerResponse);
     // rpc deleteCharacter (DeleteCharacterRequest) returns (DeleteCharacterResponse);
     // rpc getCharacterList (GetCharacterListRequest) returns (GetCharacterListResponse);
     // rpc selectCharacter (SelectCharacterRequest) returns (SelectCharacterResponse);
@@ -77,48 +77,34 @@ message Attributes {
 }
 
 message Accessory {
-    Attributes attributes = 1;
 }
 
 message Armor {
-    Attributes attributes = 1;
     int32 armor_points = 2;
 }
 
 message Weapon {
-    Attributes attributes = 1;
     int32 min_dmg = 2;
     int32 max_dmg = 3;
 }
 
 message Shield {
-    Attributes Attributes = 1;
     int32 block_points = 3;
 }
 
 message Equipment {
+    Attributes Attributes = 1;
     oneof details {
-        Accessory accessory = 1;
-        Armor armor = 2;
-        Weapon weapon = 3;
-        Shield shield = 4;
+        Accessory accessory = 2;
+        Armor armor = 3;
+        Weapon weapon = 4;
+        Shield shield = 5;
     }
-}
-
-message AttributePotion {
-    int32 attr_id = 1;
-    int32 value = 2;
-}
-
-message HPPotion {
-    int32 value = 1;
 }
 
 message Potion {
-    oneof details {
-        AttributePotion attr_potion = 1;
-        HPPotion hp_potion = 2;
-    }
+    string attr = 1;
+    int32 value = 2;
 }
 
 message Slot {

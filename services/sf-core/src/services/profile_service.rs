@@ -1,21 +1,26 @@
 use tonic::{Request, Response, Status};
 use crate::proto::sf_core::{
     Empty, LookUpValue as LookUpValueGRPC,
+    Slot,
     CreateUserRequest, CreateUserResponse,
     CreateCharacterRequest, CreateCharacterResponse,
     GetRacesResponse, GetGendersResponse,
+    GetGearShopRequest, GetContainerResponse,
     profile_service_server::ProfileService,
 };
-use sqlx::{PgPool, Transaction};
+use sqlx::{PgPool, Transaction, Postgres};
 use crate::db::{
     user_queries,
     character_queries,
     look_up_table_queries,
+    container_queries,
 };
 use crate::models::{
     LookUpValue as LookUpValueModel,
     Appearance,
+    ContainerType,
 };
+use uuid::Uuid;
 
 #[derive(Debug)]
 pub struct ProfileServiceImpl {
@@ -133,4 +138,27 @@ impl ProfileService for ProfileServiceImpl {
 
         Ok(Response::new(reply))
     }
+
+    async fn get_gear_shop(
+        &self,
+        request: Request<GetGearShopRequest>,
+    ) -> Result<Response<GetContainerResponse>, Status> {
+
+        let req = request.into_inner();
+        let mut tx: Transaction<'_, Postgres> = self.pool.begin().await.map_err(|e| {
+            Status::internal(format!("Transaction error: {}", e))
+        })?;
+
+        let reply = GetContainerResponse {
+            slots: container_queries::get_items_from_gear_shop(
+                &mut tx, Uuid::parse_str(&req.character_id).expect("Invalid UUID string"), 
+                ContainerType::GearShop,
+            ).await.map_err(|e| {
+                Status::internal(format!("DB error: {}", e))
+            })?,
+        };
+
+        Ok(Response::new(reply))
+    }
 }
+

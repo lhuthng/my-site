@@ -22,6 +22,12 @@ pub mod container;
 pub use container::{
     Container,
     ContainerType,
+    ResSlot,
+    ResAccessory,
+    ResArmor,
+    ResEquipment,
+    ResPotion,
+    ResShield,
 };
 
 pub mod item;
