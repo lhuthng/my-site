@@ -1,5 +1,6 @@
 use sqlx::{Type, FromRow};
 use serde::{Serialize, Deserialize};
+use chrono::NaiveDate;
 use strum_macros::EnumString;
 use uuid::Uuid;
 
@@ -18,6 +19,14 @@ pub struct Container {
     pub character_id: Uuid,
     pub kind: ContainerType,
     pub capacity: i32,
+}
+
+#[derive(Debug, FromRow)]
+pub struct Shop {
+    pub container_id: i32,
+    pub character_id: Uuid,
+    pub capacity: i32,
+    pub last_refresh: Option<NaiveDate>,
 }
 
 #[derive(Debug, FromRow)]

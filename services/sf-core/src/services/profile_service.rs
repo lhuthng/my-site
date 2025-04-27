@@ -21,6 +21,11 @@ use crate::models::{
     ContainerType,
 };
 use uuid::Uuid;
+use chrono::{
+    NaiveDate,
+    Local,
+};
+use crate::services::error::IntoStatus;
 
 #[derive(Debug)]
 pub struct ProfileServiceImpl {
@@ -67,9 +72,7 @@ impl ProfileService for ProfileServiceImpl {
         request: Request<CreateCharacterRequest>,
     ) -> Result<Response<CreateCharacterResponse>, Status> {
         let req = request.into_inner();
-        let mut tx: Transaction<'_, sqlx::Postgres> = self.pool.begin().await.map_err(|e| {
-            Status::internal(format!("Transaction error: {}", e))
-        })?;
+        let mut tx: Transaction<'_, sqlx::Postgres> = self.pool.begin().await.into_status()?;
         let r_app = req.appearance.unwrap();
         let app = Appearance {
             character_id: 0,
@@ -92,13 +95,9 @@ impl ProfileService for ProfileServiceImpl {
             req.name.as_str(),
             &app,
             1, 0,
-        ).await.map_err(|e| {
-            Status::internal(format!("Creating character error: {}", e))
-        })?;
+        ).await.into_status()?;
 
-        tx.commit().await.map_err(|e| {
-            Status::internal(format!("Transaction commiting error: {}", e))
-        })?;
+        tx.commit().await.into_status()?;
 
         let reply = CreateCharacterResponse {
             character_id: character_id.to_string(),
@@ -112,9 +111,10 @@ impl ProfileService for ProfileServiceImpl {
         request: Request<Empty>,
     ) -> Result<Response<GetRacesResponse>, Status> {
                 
-        let values: Vec<LookUpValueModel> = look_up_table_queries::get_all_look_up_values(&self.pool, "races").await.map_err(|e| {
-            Status::internal(format!("Getting all races error: {}", e))
-        })?;
+        let values: Vec<LookUpValueModel> = look_up_table_queries::get_all_look_up_values(
+            &self.pool, 
+            "races"
+        ).await.into_status()?;
 
         let reply = GetRacesResponse {
             races: values.into_iter().map(Into::into).collect::<Vec<LookUpValueGRPC>>(),
@@ -128,9 +128,10 @@ impl ProfileService for ProfileServiceImpl {
         request: Request<Empty>,
     ) -> Result<Response<GetGendersResponse>, Status> {
         
-        let values: Vec<LookUpValueModel> = look_up_table_queries::get_all_look_up_values(&self.pool, "genders").await.map_err(|e| {
-            Status::internal(format!("Getting all genders error: {}", e))
-        })?;
+        let values: Vec<LookUpValueModel> = look_up_table_queries::get_all_look_up_values(
+            &self.pool, 
+            "genders"
+        ).await.into_status()?;
 
         let reply = GetGendersResponse {
             genders: values.into_iter().map(Into::into).collect::<Vec<LookUpValueGRPC>>(),
@@ -145,17 +146,35 @@ impl ProfileService for ProfileServiceImpl {
     ) -> Result<Response<GetContainerResponse>, Status> {
 
         let req = request.into_inner();
-        let mut tx: Transaction<'_, Postgres> = self.pool.begin().await.map_err(|e| {
-            Status::internal(format!("Transaction error: {}", e))
-        })?;
+        let mut tx: Transaction<'_, Postgres> = self.pool.begin().await.into_status()?;
+        let character_uid = Uuid::parse_str(&req.character_id).expect("Invalid UUID string");
+        let slots = container_queries::get_items_from_gear_shop(
+            &mut tx, character_uid,
+            ContainerType::GearShop,
+        ).await.into_status()?;
+
+        let shop = container_queries::get_shop(
+            &mut tx,
+            character_uid,
+            ContainerType::GearShop,
+        ).await.into_status()?;
+
+        let need_refresh = match shop.last_refresh {
+            None => true,
+            Some(last_refresh) => last_refresh < Local::now().date_naive(),
+        };
+
+        if need_refresh {
+            container_queries::update_last_refresh(
+                &mut tx,
+                shop.container_id,
+            ).await.into_status()?;
+        }
+
+        tx.commit().await.into_status()?;
 
         let reply = GetContainerResponse {
-            slots: container_queries::get_items_from_gear_shop(
-                &mut tx, Uuid::parse_str(&req.character_id).expect("Invalid UUID string"), 
-                ContainerType::GearShop,
-            ).await.map_err(|e| {
-                Status::internal(format!("DB error: {}", e))
-            })?,
+            slots: slots,
         };
 
         Ok(Response::new(reply))

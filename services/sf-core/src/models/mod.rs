@@ -22,6 +22,7 @@ pub mod container;
 pub use container::{
     Container,
     ContainerType,
+    Shop,
     ResSlot,
     ResAccessory,
     ResArmor,

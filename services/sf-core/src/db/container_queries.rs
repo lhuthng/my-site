@@ -5,6 +5,7 @@ use crate::proto::sf_core::{
     Slot, slot
 };
 use crate::models::{
+    Shop,
     ResSlot,
 };
 
@@ -50,6 +51,53 @@ pub async fn create_container(
     }
 
     Ok(container_id)
+}
+
+pub async fn get_shop(
+    tx: &mut Transaction<'_, Postgres>,
+    character_id: Uuid,
+    kind: ContainerType,
+) -> Result<Shop, sqlx::Error> {
+
+    #[cfg(debug_assertions)]
+    println!("Getting a shop.");
+
+    let shop = sqlx::query_as::<_, Shop>(
+        r#"
+        SELECT container_id, last_refresh, capacity, character_id
+        FROM shops
+        JOIN containers ON containers.id = shops.container_id
+        WHERE containers.character_id = $1
+            AND containers.kind = $2
+        "#
+    )
+    .bind(character_id)
+    .bind(kind)
+    .fetch_one(&mut **tx)
+    .await?;
+
+    Ok(shop)
+}
+
+pub async fn update_last_refresh(
+    tx: &mut Transaction<'_, Postgres>,
+    container_id: i32,
+) -> Result<(), sqlx::Error> {
+
+    #[cfg(debug_assertions)]
+    println!("Updating item's last refresh.");
+
+    sqlx::query!(
+        r#"
+        UPDATE shops
+        SET last_refresh = CURRENT_DATE
+        WHERE container_id = $1
+        "#,
+        container_id
+    ).execute(&mut **tx)
+    .await?;
+
+    Ok(())
 }
 
 pub async fn get_items_from_gear_shop(

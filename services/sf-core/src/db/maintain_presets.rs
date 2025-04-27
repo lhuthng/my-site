@@ -10,6 +10,7 @@ use serde::{
 use std::error::Error;
 use std::fs::File;
 use tonic::Status;
+use crate::services::error::IntoStatus;
 
 #[derive(Debug, Deserialize, FromRow)]
 struct Preset {
@@ -113,5 +114,8 @@ pub async fn verify_preset_items(
         })?;
         println!("New item: {} (inserted)", preset.name);
     }
+
+    tx.commit().await.into_status()?;
+    
     Ok(())
 }
