@@ -1,5 +1,5 @@
 use std::env;
-use dotenvy::dotenv;
+use dotenvy::from_filename;
 use tonic::Status;
 
 mod db;
@@ -11,7 +11,11 @@ mod misc;
 
 #[tokio::main]
 async fn main() {
-    dotenv().ok();
+    if cfg!(debug_assertions) {
+        from_filename(".env.debug").ok();
+    } else {
+        from_filename(".env").ok();
+    }
 
     let db_username = env::var("DB_USERNAME").expect("DB_USERNAME must be set");
     let db_password = env::var("DB_PASSWORD").expect("DB_PASSWORD must be set");

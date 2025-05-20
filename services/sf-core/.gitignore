@@ -3,3 +3,4 @@ app
 other
 .env
 .env.debug
+.sqlx
