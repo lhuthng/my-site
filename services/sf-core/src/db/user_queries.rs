@@ -1,10 +1,14 @@
-use sqlx::{Transaction, Postgres};
+use sqlx::{
+    Transaction, 
+    Postgres,
+    Error,
+};
 
 pub async fn create_user(
     tx: &mut Transaction<'_, Postgres>,
     external_id: &str,
     username: &str,
-) -> Result<i32, sqlx::Error> {
+) -> Result<i32, Error> {
 
     #[cfg(debug_assertions)]
     println!("Adding a user.");

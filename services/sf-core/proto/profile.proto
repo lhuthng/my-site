@@ -7,7 +7,10 @@ service ProfileService {
     rpc createCharacter (CreateCharacterRequest) returns (CreateCharacterResponse);
     rpc getRaces (Empty) returns (GetRacesResponse);
     rpc getGenders (Empty) returns (GetGendersResponse);
-    rpc getGearShop (GetGearShopRequest) returns (GetContainerResponse);
+    rpc getGearShop (GetShopRequest) returns (GetShopResponse);
+    rpc getMagicShop (GetShopRequest) returns (GetShopResponse);
+    rpc getInventory (GetInventoryRequest) returns (GetInventoryResponse);
+    rpc buyItemFromShop (BuyItemFromShopRequest) returns (BuyItemFromShopResponse);
     // rpc deleteCharacter (DeleteCharacterRequest) returns (DeleteCharacterResponse);
     // rpc getCharacterList (GetCharacterListRequest) returns (GetCharacterListResponse);
     // rpc selectCharacter (SelectCharacterRequest) returns (SelectCharacterResponse);
@@ -64,7 +67,7 @@ message GetGendersResponse {
     repeated LookUpValue genders = 1;
 }
 
-message GetGearShopRequest {
+message GetShopRequest {
     string characterId = 1;
 }
 
@@ -116,8 +119,31 @@ message Slot {
     }
 }
 
-message GetContainerResponse {
+message GetShopResponse {
     repeated Slot slots = 1;
+}
+
+message GetInventoryRequest {
+    string characterId = 1;
+}
+
+message GetInventoryResponse {
+    repeated Slot slots = 1;
+    int32 capacity = 2; 
+}
+
+message BuyItemFromShopRequest {
+    string characterId = 1;
+    int32 itemId = 2;
+}
+
+message Resource {
+    int32 gold = 1;
+    int32 mushroom = 2;
+}
+
+message BuyItemFromShopResponse {
+    Resource after = 1;
 }
 
 // message DeleteCharacterRequest {

@@ -1488,6 +1488,7 @@ dependencies = [
 name = "sf-core"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
  "chrono",
  "csv",
  "dotenvy",
@@ -1976,9 +1977,9 @@ dependencies = [
 
 [[package]]
 name = "tonic"
-version = "0.13.0"
+version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "85839f0b32fd242bb3209262371d07feda6d780d16ee9d2bc88581b89da1549b"
+checksum = "7e581ba15a835f4d9ea06c55ab1bd4dce26fc53752c69a04aac00703bfb49ba9"
 dependencies = [
  "async-trait",
  "axum",

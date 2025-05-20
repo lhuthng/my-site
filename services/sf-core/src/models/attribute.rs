@@ -1,4 +1,4 @@
-use sqlx::FromRow
+use sqlx::FromRow;
 
 #[derive(Debug, FromRow)]
 pub struct Attribute {

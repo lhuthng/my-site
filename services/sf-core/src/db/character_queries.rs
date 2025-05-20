@@ -10,6 +10,9 @@ use crate::db::{
     entity_queries,
     container_queries,
 };
+use crate::models::{
+    Attribute,
+};
 
 async fn create_simple_character(
     tx: &mut Transaction<'_, Postgres>,
@@ -121,7 +124,14 @@ pub async fn create_character(
     exp: i32,
 ) -> Result<Uuid, sqlx::Error> {
     let entity_id: i32 = entity_queries::create_entity(tx, EntityType::Character).await?;
-    entity_queries::attach_attributes(tx, entity_id, 1, 1, 1, 1, 1).await?;
+    entity_queries::attach_attributes(tx, Attribute { 
+        entity_id: entity_id, 
+        int: 1, 
+        str: 1, 
+        dex: 1, 
+        con: 1, 
+        lck: 1 
+    }, None).await?;
     let character_id: Uuid = create_simple_character(
         tx,
         user_id,

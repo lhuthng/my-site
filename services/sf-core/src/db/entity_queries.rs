@@ -1,5 +1,5 @@
 use sqlx::{Transaction, Postgres};
-use crate::models::EntityType;
+use crate::models::{Attribute, EntityType};
 
 pub async fn create_entity(
     tx: &mut Transaction<'_, Postgres>,
@@ -25,28 +25,27 @@ pub async fn create_entity(
 
 pub async fn attach_attributes(
     tx: &mut Transaction<'_, Postgres>,
-    entity_id: i32,
-    int: i32,
-    str_: i32,
-    dex: i32,
-    con: i32,
-    lck: i32,
+    attr: Attribute,
+    overridden_entity_id: Option<i32>
 ) -> Result<(), sqlx::Error> {
 
     #[cfg(debug_assertions)]
     println!("Adding an attribute.");
-
+    let entity_id = match overridden_entity_id {
+        Some(val) => val,
+        None => attr.entity_id
+    };
     sqlx::query!(
         r#"
         INSERT INTO attributes (entity_id, int, str, dex, con, lck)
         VALUES ($1, $2, $3, $4, $5, $6)
         "#,
         entity_id,
-        int,
-        str_,
-        dex,
-        con,
-        lck,
+        attr.int,
+        attr.str,
+        attr.dex,
+        attr.con,
+        attr.lck,
     )
     .execute(&mut **tx)
     .await?;

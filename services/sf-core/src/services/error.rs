@@ -5,7 +5,7 @@ pub trait IntoStatus<T> {
     fn into_status(self) -> Result<T, Status>;
 }
 
-impl<T> IntoStatus<T> for Result<T, sqlx::Error> {
+impl<T> IntoStatus<T> for Result<T, Error> {
     fn into_status(self) -> Result<T, Status> {
         self.map_err(|e| {
             Status::internal(format!("DB error: {}", e))

@@ -47,20 +47,19 @@ CREATE TABLE "preset_items" (
     "description" TEXT,
     "item_category_id" INT REFERENCES "item_categories" ("id") NOT NULL,
     "item_sub_category_id" INT REFERENCES "item_sub_categories" ("id") NOT NULL,
-    "item_tier_id" INT REFERENCES "item_tiers" ("id") NOT NULL
+    "item_tier_id" SMALLINT REFERENCES "item_tiers" ("id") NOT NULL
 );
 
 CREATE TABLE "items" (
     "id" SERIAL PRIMARY KEY,
     "preset_item_id" SMALLINT REFERENCES "preset_items" ("id") NOT NULL,
-    "overridden_item_tier_id" INT REFERENCES "item_tiers" ("id") DEFAULT NULL,
+    "overridden_item_tier_id" SMALLINT REFERENCES "item_tiers" ("id") DEFAULT NULL,
     "price" INT DEFAULT 0
 );
 
 CREATE TABLE "equipable_items" (
     "item_id" INT PRIMARY KEY REFERENCES "items"("id") UNIQUE,
-    "entity_id" INT REFERENCES "entities"("id") NOT NULL UNIQUE,
-    "job_id" SMALLINT REFERENCES "jobs" ("id") NOT NULL
+    "entity_id" INT REFERENCES "entities"("id") NOT NULL UNIQUE
 );
 
 CREATE TABLE "armor_items" (

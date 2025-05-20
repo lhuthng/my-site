@@ -79,27 +79,6 @@ pub async fn get_shop(
     Ok(shop)
 }
 
-pub async fn update_last_refresh(
-    tx: &mut Transaction<'_, Postgres>,
-    container_id: i32,
-) -> Result<(), sqlx::Error> {
-
-    #[cfg(debug_assertions)]
-    println!("Updating item's last refresh.");
-
-    sqlx::query!(
-        r#"
-        UPDATE shops
-        SET last_refresh = CURRENT_DATE
-        WHERE container_id = $1
-        "#,
-        container_id
-    ).execute(&mut **tx)
-    .await?;
-
-    Ok(())
-}
-
 pub async fn get_items_from_gear_shop(
     tx: &mut Transaction<'_, Postgres>,
     character_id: Uuid,
@@ -148,4 +127,26 @@ pub async fn get_item(
     item_id: i32,
 ) -> Result<Option<slot::Item>, sqlx::Error> {
     Ok(None)
+}
+
+pub async fn refresh_shop(
+    tx: &mut Transaction<'_, Postgres>,
+    container_id: i32,
+    kind: ContainerType,
+) -> Result<(), sqlx::Error> {
+
+    #[cfg(debug_assertions)]
+    println!("Updating item's last refresh.");
+
+    sqlx::query!(
+        r#"
+        UPDATE shops
+        SET last_refresh = CURRENT_DATE
+        WHERE container_id = $1
+        "#,
+        container_id
+    ).execute(&mut **tx)
+    .await?;
+
+    Ok(())
 }

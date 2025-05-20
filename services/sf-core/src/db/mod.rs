@@ -6,6 +6,7 @@ pub mod entity_queries;
 pub mod container_queries;
 pub mod maintain_presets;
 pub mod look_up_table_queries;
+pub mod item_queries;
 
 pub async fn connect(uri: &str) -> Result<PgPool, Error> {
     let pool = PgPool::connect(uri).await?;

@@ -78,7 +78,7 @@ pub async fn verify_preset_items(
     let only_in_db: Vec<_> = db_map
         .iter()
         .filter(|(name, _)| !csv_map.contains_key(*name))
-        .map(|(_, p)| (*p).clone())
+        .map(|(_, p)| (*p))
         .collect();
 
 
@@ -88,7 +88,7 @@ pub async fn verify_preset_items(
     let only_in_csv: Vec<_> = csv_map
         .iter()
         .filter(|(name, _)| !db_map.contains_key(*name))
-        .map(|(_, p)| (*p).clone())
+        .map(|(_, p)| (*p))
         .collect();
 
     for preset in only_in_csv {
