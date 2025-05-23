@@ -1,4 +1,8 @@
-use sqlx::{Transaction, Postgres};
+use sqlx::{
+    Transaction, 
+    Postgres,
+    Error
+};
 use crate::models::{
     EntityType,
     ContainerType,
@@ -22,7 +26,7 @@ async fn create_simple_character(
     name: &str,
     level: i16,
     exp: i32,
-) -> Result<Uuid, sqlx::Error> {
+) -> Result<Uuid, Error> {
 
     #[cfg(debug_assertions)]
     println!("Adding a character.");
@@ -49,7 +53,7 @@ async fn create_simple_character(
 pub async fn attach_resources(
     tx: &mut Transaction<'_, Postgres>,
     character_id: &Uuid,
-) -> Result<(), sqlx::Error> {
+) -> Result<(), Error> {
 
     #[cfg(debug_assertions)]
     println!("Adding resources.");
@@ -72,7 +76,7 @@ pub async fn attach_appearance(
     tx: &mut Transaction<'_, Postgres>,
     entity_id: i32,
     appearance: &Appearance,
-) -> Result<(), sqlx::Error> {
+) -> Result<(), Error> {
 
     #[cfg(debug_assertions)]
     println!("Adding an appearance.");
@@ -105,7 +109,7 @@ pub async fn attach_appearance(
 pub async fn attach_containers(
     tx: &mut Transaction<'_, Postgres>,
     character_id: &Uuid,
-) -> Result<(), sqlx::Error> {
+) -> Result<(), Error> {
 
     container_queries::create_container(tx, character_id, ContainerType::Inventory, 5).await?;
     container_queries::create_container(tx, character_id, ContainerType::MagicShop, 6).await?;
@@ -122,7 +126,7 @@ pub async fn create_character(
     appearance: &Appearance,
     level: i16,
     exp: i32,
-) -> Result<Uuid, sqlx::Error> {
+) -> Result<Uuid, Error> {
     let entity_id: i32 = entity_queries::create_entity(tx, EntityType::Character).await?;
     entity_queries::attach_attributes(tx, Attribute { 
         entity_id: entity_id, 
@@ -144,6 +148,14 @@ pub async fn create_character(
 
     attach_resources(tx, &character_id).await?;
     attach_containers(tx, &character_id).await?;
+    attach_appearance(tx, entity_id, appearance).await?;
 
     Ok(character_id)
+}
+
+async fn get_character_info(
+    tx: &mut Transaction<'_, Postgres>,
+    character_id: &Uuid
+) -> Result<i32, Error> {
+    Ok(0)
 }

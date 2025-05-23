@@ -7,6 +7,7 @@ service ProfileService {
     rpc createCharacter (CreateCharacterRequest) returns (CreateCharacterResponse);
     rpc getRaces (Empty) returns (GetRacesResponse);
     rpc getGenders (Empty) returns (GetGendersResponse);
+    rpc getEquipment (GetEquipmentRequest) returns (GetEquipmentResponse);
     rpc getGearShop (GetShopRequest) returns (GetShopResponse);
     rpc getMagicShop (GetShopRequest) returns (GetShopResponse);
     rpc getInventory (GetInventoryRequest) returns (GetInventoryResponse);
@@ -144,6 +145,23 @@ message Resource {
 
 message BuyItemFromShopResponse {
     Resource after = 1;
+}
+
+message GetEquipmentRequest {
+    string characterId = 1;
+}
+
+message GetEquipmentResponse {
+    repeated Equipment equipment = 1;
+}
+
+message CharacterInfo {
+    string name = 1;
+    Appearance appearance = 2;
+    Attributes total_attributes = 3;
+    Resource resource = 4;
+    int32 experience = 5;
+    int32 level = 6; 
 }
 
 // message DeleteCharacterRequest {

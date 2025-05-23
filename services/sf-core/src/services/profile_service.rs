@@ -1,14 +1,22 @@
-use tonic::{Request, Response, Status};
-use crate::proto::sf_core::{BuyItemFromShopRequest, BuyItemFromShopResponse, GetInventoryRequest, GetInventoryResponse};
+use sqlx::PgPool;
+use uuid::Uuid;
+use chrono::Local;
+use tonic::{
+    Request, 
+    Response, 
+    Status
+};
+use crate::proto::sf_core::{equipment, GetEquipmentRequest, GetEquipmentResponse};
 use crate::proto::sf_core::{
     Empty, LookUpValue as LookUpValueGRPC,
     CreateUserRequest, CreateUserResponse,
     CreateCharacterRequest, CreateCharacterResponse,
     GetRacesResponse, GetGendersResponse,
     GetShopRequest, GetShopResponse,
+    BuyItemFromShopRequest, BuyItemFromShopResponse, 
+    GetInventoryRequest, GetInventoryResponse,
     profile_service_server::ProfileService,
 };
-use sqlx::{PgPool, Transaction, Postgres};
 use crate::db::{
     user_queries,
     character_queries,
@@ -20,8 +28,6 @@ use crate::models::{
     Appearance,
     ContainerType,
 };
-use uuid::Uuid;
-use chrono::Local;
 use crate::services::error::IntoStatus;
 use crate::services::transactional::{
     Transactional,
@@ -241,5 +247,19 @@ impl ProfileService for ProfileServiceImpl {
         }))
     }
 
+    async fn get_equipment(
+        &self,
+        request: Request<GetEquipmentRequest>
+    ) -> Result<Response<GetEquipmentResponse>, Status> {
+        let req = request.into_inner();
+        
+        let equipment = commit!(self, |tx| {
+            Vec::new()
+        });
+
+        Ok(Response::new(GetEquipmentResponse { 
+            equipment
+        }))
+    }
 }
 
